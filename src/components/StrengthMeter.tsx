@@ -45,11 +45,20 @@ const StrengthMeter: React.FC<StrengthMeterProps> = ({ strength }) => {
     }[level];
   };
 
+  const getScoreDisplay = () => {
+    return `${Math.round(strength)}/100`;
+  };
+
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-center">
         <span className="text-sm text-muted-foreground">Password Strength</span>
-        <span className={cn("text-sm font-medium", getTextColor())}>{getText()}</span>
+        <div className="flex items-center space-x-2">
+          <span className={cn("text-sm font-medium", getTextColor())}>{getText()}</span>
+          <span className="text-xs bg-muted/40 px-2 py-0.5 rounded font-mono">
+            {getScoreDisplay()}
+          </span>
+        </div>
       </div>
       <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
         <div 
