@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,19 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				strength: {
+					weak: '#ff4757',
+					medium: '#ffa502',
+					good: '#2ed573',
+					strong: '#1e90ff'
+				},
+				cyber: {
+					primary: '#7B68EE',
+					secondary: '#5D3FD3',
+					background: '#0B0C24',
+					accent: '#00BFFF',
+					dark: '#080A19'
 				}
 			},
 			borderRadius: {
@@ -84,11 +98,25 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'pulse-soft': {
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0.8' }
+				},
+				'fade-in': {
+					'0%': { opacity: '0', transform: 'translateY(10px)' },
+					'100%': { opacity: '1', transform: 'translateY(0)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'pulse-soft': 'pulse-soft 3s infinite ease-in-out',
+				'fade-in': 'fade-in 0.5s ease-out'
+			},
+			backgroundImage: {
+				'cyber-gradient': 'linear-gradient(to right, hsl(246, 78%, 67%, 0.8), hsl(265, 68%, 53%, 0.8))',
+				'strength-gradient': 'linear-gradient(90deg, #ff4757 0%, #ffa502 33%, #2ed573 66%, #1e90ff 100%)'
 			}
 		}
 	},
