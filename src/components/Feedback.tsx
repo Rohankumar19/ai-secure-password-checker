@@ -52,6 +52,25 @@ const Feedback: React.FC<FeedbackProps> = ({ password }) => {
     setSuggestedPassword(newPassword);
   };
 
+  // Example transformation breakdown for educational purposes
+  const getTransformationExample = () => {
+    if (!password || password.length < 3) return null;
+    
+    return (
+      <div className="mt-2 text-xs text-muted-foreground">
+        <p>Example transformation:</p>
+        <div className="font-mono mt-1 space-y-1">
+          <div>Original: <span className="text-strength-weak">{password}</span></div>
+          <div>→ Leetspeak: <span className="text-strength-medium">{password.replace(/[aeiosblt]/gi, m => {
+            const replacement = { 'a': '4', 'e': '3', 'i': '1', 'o': '0', 's': '5', 'b': '8', 'l': '1', 't': '7' }[m.toLowerCase()];
+            return replacement || m;
+          })}</span></div>
+          <div>→ + Special chars: <span className="text-strength-good">{suggestedPassword}</span></div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-4 animate-fade-in">
       <div className="space-y-2">
@@ -93,6 +112,7 @@ const Feedback: React.FC<FeedbackProps> = ({ password }) => {
               <Copy size={14} />
             </Button>
           </div>
+          {getTransformationExample()}
         </div>
       </div>
     </div>

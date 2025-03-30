@@ -31,25 +31,75 @@ export function calculatePasswordStrength(password: string): number {
   return Math.max(0, Math.min(100, Math.round(score)));
 }
 
+// Leetspeak conversion map
+const leetMap: Record<string, string> = {
+  'a': '4',
+  'e': '3',
+  'i': '1',
+  'o': '0',
+  's': '5',
+  't': '7',
+  'b': '8',
+  'g': '9',
+  'l': '1'
+};
+
+// Special characters to use in password strengthening
+const specialChars = ['!', '@', '#', '$', '%', '&', '*', '?', '+', '=', '^', '~'];
+
 export function generateStrongPassword(userPassword: string): string {
-  // Use parts of the user's password if possible (to make it more memorable)
-  // but strengthen it significantly
+  if (!userPassword || userPassword.length < 3) {
+    return "Str0ng#P@ss!23";
+  }
   
-  if (!userPassword) return "StrongP@ss123!";
+  // Step 1: Apply leetspeak conversion
+  let strengthened = userPassword.split('').map(char => {
+    // 70% chance to convert applicable characters to leetspeak
+    if (leetMap[char.toLowerCase()] && Math.random() > 0.3) {
+      return leetMap[char.toLowerCase()];
+    }
+    
+    // 50% chance to uppercase letters
+    if (/[a-z]/.test(char) && Math.random() > 0.5) {
+      return char.toUpperCase();
+    }
+    
+    return char;
+  }).join('');
   
-  // Extract any letters from the user password
-  const letters = userPassword.match(/[a-zA-Z]+/g) || [];
-  const firstWordPart = letters.length ? letters[0].substring(0, 4) : "Pass";
+  // Step 2: Add special characters at random positions
+  // Insert 1-3 special characters
+  const numSpecialChars = Math.floor(Math.random() * 3) + 1;
+  for (let i = 0; i < numSpecialChars; i++) {
+    const position = Math.floor(Math.random() * (strengthened.length + 1));
+    const specialChar = specialChars[Math.floor(Math.random() * specialChars.length)];
+    strengthened = strengthened.slice(0, position) + specialChar + strengthened.slice(position);
+  }
   
-  // Capitalize the first letter to ensure uppercase
-  const capitalizedPart = firstWordPart.charAt(0).toUpperCase() + firstWordPart.slice(1);
+  // Step 3: Enhance length and uniqueness if needed
+  if (strengthened.length < 12) {
+    // Add random characters to reach minimum length of 12
+    const additionalLength = 12 - strengthened.length;
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+    let extraChars = '';
+    for (let i = 0; i < additionalLength; i++) {
+      extraChars += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    strengthened += extraChars;
+  }
   
-  // Add numbers and special characters
-  const numbers = Math.floor(Math.random() * 900 + 100).toString(); // 3-digit number
-  const specialChars = ["!", "@", "#", "$", "%", "&", "*"];
-  const specialChar1 = specialChars[Math.floor(Math.random() * specialChars.length)];
-  const specialChar2 = specialChars[Math.floor(Math.random() * specialChars.length)];
+  // Ensure the password has at least one uppercase, lowercase, number, and special character
+  let hasUpper = /[A-Z]/.test(strengthened);
+  let hasLower = /[a-z]/.test(strengthened);
+  let hasNumber = /[0-9]/.test(strengthened);
+  let hasSpecial = /[^A-Za-z0-9]/.test(strengthened);
   
-  // Create a strong password using parts of the user's input but much stronger
-  return `${capitalizedPart}${specialChar1}${numbers}${specialChar2}`;
+  if (!hasUpper) strengthened += 'Q';
+  if (!hasLower) strengthened += 'q';
+  if (!hasNumber) strengthened += '7';
+  if (!hasSpecial) strengthened += '#';
+  
+  return strengthened;
 }
+
+// Example transformation for "Summer2024" would produce something like "5uMM3r#2024*Q"
