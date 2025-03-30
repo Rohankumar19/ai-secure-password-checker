@@ -30,3 +30,26 @@ export function calculatePasswordStrength(password: string): number {
   // Ensure score is between 0-100
   return Math.max(0, Math.min(100, Math.round(score)));
 }
+
+export function generateStrongPassword(userPassword: string): string {
+  // Use parts of the user's password if possible (to make it more memorable)
+  // but strengthen it significantly
+  
+  if (!userPassword) return "StrongP@ss123!";
+  
+  // Extract any letters from the user password
+  const letters = userPassword.match(/[a-zA-Z]+/g) || [];
+  const firstWordPart = letters.length ? letters[0].substring(0, 4) : "Pass";
+  
+  // Capitalize the first letter to ensure uppercase
+  const capitalizedPart = firstWordPart.charAt(0).toUpperCase() + firstWordPart.slice(1);
+  
+  // Add numbers and special characters
+  const numbers = Math.floor(Math.random() * 900 + 100).toString(); // 3-digit number
+  const specialChars = ["!", "@", "#", "$", "%", "&", "*"];
+  const specialChar1 = specialChars[Math.floor(Math.random() * specialChars.length)];
+  const specialChar2 = specialChars[Math.floor(Math.random() * specialChars.length)];
+  
+  // Create a strong password using parts of the user's input but much stronger
+  return `${capitalizedPart}${specialChar1}${numbers}${specialChar2}`;
+}
