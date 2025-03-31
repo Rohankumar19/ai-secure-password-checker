@@ -4,55 +4,47 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { CalendarIcon, ChevronRight } from 'lucide-react';
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { UserData } from './RegistrationFlow';
+import { ChevronRight } from 'lucide-react';
 
 interface StepOneProps {
-  userData: UserData;
+  userData: Omit<UserData, 'password'>;
   onComplete: (data: Omit<UserData, 'password'>) => void;
 }
 
-const StepOne: React.FC<StepOneProps> = ({ userData, onComplete }) => {
-  const formSchema = z.object({
-    fullName: z.string().min(2, {
-      message: "Name must be at least 2 characters.",
-    }),
-    dateOfBirth: z.date({
-      required_error: "Please select a date of birth.",
-    }),
-    email: z.string().email({
-      message: "Please enter a valid email address.",
-    }),
-  });
+// Form validation schema
+const formSchema = z.object({
+  fullName: z.string().min(2, { message: "Name must be at least 2 characters." }),
+  dateOfBirth: z.string().refine(value => {
+    const date = new Date(value);
+    const today = new Date();
+    const eighteenYearsAgo = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+    return !isNaN(date.getTime()) && date <= eighteenYearsAgo;
+  }, { message: "You must be at least 18 years old." }),
+  email: z.string().email({ message: "Please enter a valid email address." }),
+});
 
+const StepOne: React.FC<StepOneProps> = ({ userData, onComplete }) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      fullName: userData.fullName || "",
-      dateOfBirth: userData.dateOfBirth ? new Date(userData.dateOfBirth) : undefined,
-      email: userData.email || "",
+      fullName: userData.fullName,
+      dateOfBirth: userData.dateOfBirth,
+      email: userData.email,
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    onComplete({
-      fullName: values.fullName,
-      dateOfBirth: values.dateOfBirth.toISOString(),
-      email: values.email,
-    });
-  }
+  const onSubmit = (data: z.infer<typeof formSchema>) => {
+    onComplete(data);
+  };
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-lg font-semibold mb-1">Personal Information</h2>
-        <p className="text-sm text-muted-foreground">Step 1 of 3: Provide details for a personalized experience</p>
+        <p className="text-sm text-muted-foreground">Step 1 of 3: Enter your personal details</p>
       </div>
 
       <Form {...form}>
@@ -64,7 +56,7 @@ const StepOne: React.FC<StepOneProps> = ({ userData, onComplete }) => {
               <FormItem>
                 <FormLabel>Full Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="John Doe" {...field} />
+                  <Input placeholder="Enter your full name" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -75,39 +67,11 @@ const StepOne: React.FC<StepOneProps> = ({ userData, onComplete }) => {
             control={form.control}
             name="dateOfBirth"
             render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Date of birth</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("1900-01-01")
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
+              <FormItem>
+                <FormLabel>Date of Birth</FormLabel>
+                <FormControl>
+                  <Input type="date" max={new Date().toISOString().split('T')[0]} {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -118,16 +82,16 @@ const StepOne: React.FC<StepOneProps> = ({ userData, onComplete }) => {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>Email Address</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="yourname@example.com" {...field} />
+                  <Input type="email" placeholder="Enter your email address" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <Button type="submit" className="w-full">
+          <Button type="submit" className="w-full mt-6">
             Next Step <ChevronRight className="ml-2 h-4 w-4" />
           </Button>
         </form>
