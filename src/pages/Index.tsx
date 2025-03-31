@@ -1,12 +1,12 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import RegistrationFlow from '@/components/registration/RegistrationFlow';
 import { Toaster } from "@/components/ui/toaster";
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center p-4 sm:p-6 bg-cyber-background">
-      <div className="w-full max-w-md mx-auto">
+    <div className="min-h-screen flex flex-col justify-center items-center p-4 sm:p-6 lg:p-8 bg-cyber-background">
+      <div className="w-full max-w-3xl mx-auto">
         <RegistrationFlow />
       </div>
       

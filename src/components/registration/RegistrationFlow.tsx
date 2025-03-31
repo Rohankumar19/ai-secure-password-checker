@@ -41,7 +41,7 @@ const RegistrationFlow = () => {
   };
 
   return (
-    <div className="cyber-card p-6 animate-fade-in">
+    <div className="cyber-card p-6 md:p-8 animate-fade-in">
       <div className="flex items-center space-x-2 mb-6">
         <Shield className="text-cyber-primary h-6 w-6" />
         <h1 className="text-xl font-bold text-foreground">Password Strength Analyzer with AI</h1>

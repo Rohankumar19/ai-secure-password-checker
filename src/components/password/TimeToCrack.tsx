@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Clock, Cpu, Server, Zap, Shield, Lock, Book, Table } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface TimeToCrackProps {
   crackTime: {
@@ -30,6 +31,7 @@ interface TimeToCrackProps {
 
 const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
   const [activeTab, setActiveTab] = useState("overview");
+  const isMobile = useIsMobile();
   
   // Information about different hashing methods
   const hashingMethods = [
@@ -173,7 +175,7 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
       {getTimeVisual()}
       
       <Tabs defaultValue="overview" className="w-full" onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className={`grid w-full ${isMobile ? 'grid-cols-1 gap-1' : 'grid-cols-3'}`}>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="hashcat">Hashcat GPU</TabsTrigger>
           <TabsTrigger value="attacks">Attack Types</TabsTrigger>
