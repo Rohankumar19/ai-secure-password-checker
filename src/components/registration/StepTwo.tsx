@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Switch } from "@/components/ui/switch";
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import PasswordInput from '@/components/PasswordInput';
 import StrengthMeter from '@/components/StrengthMeter';
@@ -15,6 +16,7 @@ import {
   generateStrongPassword,
   checkAgainstPersonalData 
 } from '@/utils/passwordUtils';
+import LiveAttackSimulation from '@/components/password/LiveAttackSimulation';
 
 interface StepTwoProps {
   userData: UserData;
@@ -26,6 +28,7 @@ const StepTwo: React.FC<StepTwoProps> = ({ userData, onComplete, onBack }) => {
   const [password, setPassword] = useState('');
   const [strength, setStrength] = useState(0);
   const [personalDataIssues, setPersonalDataIssues] = useState<string[]>([]);
+  const [liveSimulationMode, setLiveSimulationMode] = useState(false);
   
   const formSchema = z.object({
     password: z
@@ -105,7 +108,29 @@ const StepTwo: React.FC<StepTwoProps> = ({ userData, onComplete, onBack }) => {
 
           <StrengthMeter strength={strength} />
 
-          {password && (
+          <div className="flex items-center space-x-2 pt-2">
+            <Switch 
+              id="live-simulation"
+              checked={liveSimulationMode}
+              onCheckedChange={setLiveSimulationMode}
+            />
+            <label 
+              htmlFor="live-simulation" 
+              className="text-sm font-medium cursor-pointer"
+            >
+              Enable Live Attack Simulation
+            </label>
+          </div>
+
+          {liveSimulationMode && password && (
+            <LiveAttackSimulation 
+              password={password}
+              strength={strength}
+              userData={userData}
+            />
+          )}
+
+          {password && !liveSimulationMode && (
             <PasswordFeedback 
               password={password}
               strength={strength}

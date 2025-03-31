@@ -176,6 +176,211 @@ export function checkAgainstPersonalData(password: string, userData: any): strin
   return issues;
 }
 
+// Simulate an attack based on attack type, password, and user data
+export function simulateAttack(
+  password: string, 
+  userData: any, 
+  attackType: string, 
+  strength: number
+): { cracked: boolean; method?: string } {
+  const lowercasePassword = password.toLowerCase();
+  
+  // Common leaked passwords
+  const commonLeakedPasswords = [
+    "123456", "password", "123456789", "12345678", "12345", "qwerty", 
+    "1234567", "111111", "1234567890", "123123", "admin", "letmein", 
+    "welcome", "monkey", "login", "abc123", "starwars", "dragon", 
+    "passw0rd", "master", "hello", "freedom", "whatever", "qazwsx"
+  ];
+  
+  // RockYou.txt top passwords (simulation)
+  const rockyouPasswords = [
+    ...commonLeakedPasswords,
+    "iloveyou", "princess", "rockyou", "1234", "12345", "baseball", 
+    "football", "1qaz2wsx", "trustno1", "jennifer", "sunshine", "superman",
+    "michael", "liverpool", "computer", "jessica", "pokemon", "michelle",
+    "tigger", "angel", "qwertyuiop", "charlie", "zxcvbnm", "zaq1zaq1"
+  ];
+  
+  // Dictionary attack simulation
+  if (attackType === 'dictionary attack') {
+    // Cracking probability based on password strength
+    const dictionaryAttackProbability = Math.max(0, 100 - strength) / 100;
+    
+    // Check if password matches any in our simulated dictionary
+    const isInDictionary = rockyouPasswords.includes(lowercasePassword);
+    
+    // For very weak passwords, directly check against common password lists
+    if (isInDictionary || strength < 30) {
+      return { 
+        cracked: true, 
+        method: "Found in leaked password database" 
+      };
+    }
+    
+    // Random chance of success based on strength to simulate larger dictionaries
+    if (Math.random() < dictionaryAttackProbability * 0.5) {
+      return { 
+        cracked: true, 
+        method: "Matched common password pattern" 
+      };
+    }
+    
+    return { cracked: false };
+  }
+  
+  // Brute force attack simulation
+  if (attackType === 'brute force attack') {
+    // Check for patterns based on personal information
+    if (userData.fullName) {
+      const nameParts = userData.fullName.toLowerCase().split(' ');
+      for (const part of nameParts) {
+        if (part.length > 2) {
+          // Check for variations of name with numbers/special chars
+          const nameRegexPatterns = [
+            new RegExp(`${part}\\d+`),          // name followed by numbers
+            new RegExp(`${part}[!@#$%^&*]`),    // name followed by special chars
+            new RegExp(`\\d+${part}`),          // numbers followed by name
+            new RegExp(`[!@#$%^&*]${part}`)     // special chars followed by name
+          ];
+          
+          for (const regex of nameRegexPatterns) {
+            if (regex.test(lowercasePassword)) {
+              return { 
+                cracked: true, 
+                method: `Personal data pattern: ${part}+extra` 
+              };
+            }
+          }
+        }
+      }
+    }
+    
+    // Check for patterns based on birth date
+    if (userData.dateOfBirth) {
+      const date = new Date(userData.dateOfBirth);
+      const year = date.getFullYear().toString();
+      
+      if (lowercasePassword.includes(year)) {
+        return { 
+          cracked: true, 
+          method: `Pattern with birth year: ${year}` 
+        };
+      }
+      
+      // Common date formats
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const day = date.getDate().toString().padStart(2, '0');
+      
+      const dateFormats = [
+        `${month}${day}`, `${day}${month}`, 
+        `${month}${day}${year.slice(-2)}`, `${day}${month}${year.slice(-2)}`
+      ];
+      
+      for (const format of dateFormats) {
+        if (lowercasePassword.includes(format)) {
+          return { 
+            cracked: true, 
+            method: `Pattern with date: ${format}` 
+          };
+        }
+      }
+    }
+    
+    // Check for patterns with email
+    if (userData.email) {
+      const emailParts = userData.email.toLowerCase().split('@')[0].split('.');
+      for (const part of emailParts) {
+        if (part.length > 2 && lowercasePassword.includes(part)) {
+          return { 
+            cracked: true, 
+            method: `Pattern with email: ${part}` 
+          };
+        }
+      }
+    }
+    
+    // Check keyboard patterns
+    const keyboardPatterns = ['qwerty', 'asdfgh', 'zxcvb', '12345', '09876'];
+    for (const pattern of keyboardPatterns) {
+      if (lowercasePassword.includes(pattern)) {
+        return { 
+          cracked: true, 
+          method: `Keyboard pattern: ${pattern}` 
+        };
+      }
+    }
+    
+    // Simple patterns
+    if (/^[0-9]+$/.test(password)) {
+      return { cracked: true, method: "Numbers only" };
+    }
+    
+    if (/^[a-zA-Z]+$/.test(password)) {
+      return { cracked: true, method: "Letters only" };
+    }
+    
+    // Random chance of cracking based on password strength
+    const bruteForceChance = Math.max(0, (80 - strength) / 100);
+    if (Math.random() < bruteForceChance && password.length < 10) {
+      return { cracked: true, method: "Brute force success" };
+    }
+    
+    return { cracked: false };
+  }
+  
+  // Rainbow table attack simulation
+  if (attackType === 'rainbow table attack') {
+    // Rainbow tables are most effective against unsalted hashes of common patterns
+    // Simulate this by checking for common patterns with minor modifications
+    
+    // Common password patterns that might be in rainbow tables
+    const commonPatterns = ['pass', 'admin', 'user', 'login', 'welcome', 'secret', 'secure'];
+    
+    for (const pattern of commonPatterns) {
+      // Check for leetspeak variations
+      const leetPattern = pattern
+        .replace(/a/g, '4')
+        .replace(/e/g, '3')
+        .replace(/i/g, '1')
+        .replace(/o/g, '0')
+        .replace(/s/g, '5');
+      
+      if (lowercasePassword.includes(pattern) || lowercasePassword.includes(leetPattern)) {
+        // Higher chance of cracking for shorter passwords
+        const rainbowChance = Math.max(0, (70 - strength) / 100);
+        if (Math.random() < rainbowChance || password.length < 9) {
+          return { 
+            cracked: true, 
+            method: `Common pattern found: ${pattern}` 
+          };
+        }
+      }
+    }
+    
+    // For very short passwords, rainbow tables are highly effective
+    if (password.length < 8 && strength < 60) {
+      return { 
+        cracked: true, 
+        method: "Short password hash reversed" 
+      };
+    }
+    
+    // MD5 and unsalted SHA1 hashes are vulnerable
+    // Simulate by giving a small chance for weak passwords
+    if (strength < 40 && Math.random() < 0.3) {
+      return { 
+        cracked: true, 
+        method: "Hash reversed via rainbow table" 
+      };
+    }
+    
+    return { cracked: false };
+  }
+  
+  return { cracked: false };
+}
+
 // Hashcat simulation data for different GPUs and attack modes
 const hashcatBenchmarks = {
   // Speeds in hashes per second for different hash types and GPUs
