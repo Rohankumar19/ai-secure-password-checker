@@ -1,4 +1,3 @@
-
 export function calculatePasswordStrength(password: string): number {
   if (!password) return 0;
   
@@ -177,11 +176,118 @@ export function checkAgainstPersonalData(password: string, userData: any): strin
   return issues;
 }
 
+// Hashcat simulation data for different GPUs and attack modes
+const hashcatBenchmarks = {
+  // Speeds in hashes per second for different hash types and GPUs
+  // Based on real-world Hashcat benchmarks
+  "rtx3090": {
+    "md5": 70_000_000_000,    // 70 GH/s
+    "sha256": 2_500_000_000,   // 2.5 GH/s
+    "bcrypt": 23_000          // 23 KH/s
+  },
+  "rtx2080": {
+    "md5": 33_000_000_000,    // 33 GH/s
+    "sha256": 1_200_000_000,   // 1.2 GH/s
+    "bcrypt": 12_000          // 12 KH/s
+  },
+  "gtx1080": {
+    "md5": 25_000_000_000,    // 25 GH/s
+    "sha256": 800_000_000,     // 800 MH/s
+    "bcrypt": 8_000           // 8 KH/s
+  }
+};
+
+// Attack modes simulation data
+const attackModes = [
+  {
+    name: "Brute Force",
+    description: "Tries every possible combination of characters",
+    effectivenessVsStrength: (strength: number) => strength >= 70 ? "Low" : "High",
+    timeMultiplier: (strength: number) => Math.pow(10, strength / 10),
+    icon: "zap"
+  },
+  {
+    name: "Dictionary Attack",
+    description: "Uses lists of common words and passwords",
+    effectivenessVsStrength: (strength: number) => strength >= 50 ? "Low" : "Very High",
+    timeMultiplier: (strength: number) => Math.pow(10, strength / 20),
+    icon: "book"
+  },
+  {
+    name: "Rainbow Table",
+    description: "Uses precomputed tables to crack password hashes",
+    effectivenessVsStrength: (strength: number) => strength >= 60 ? "Low" : "High",
+    timeMultiplier: (strength: number) => Math.pow(10, strength / 15),
+    icon: "table"
+  },
+  {
+    name: "Hybrid Attack",
+    description: "Combines dictionary words with patterns and special characters",
+    effectivenessVsStrength: (strength: number) => strength >= 80 ? "Low" : "Medium",
+    timeMultiplier: (strength: number) => Math.pow(10, strength / 12),
+    icon: "combine"
+  }
+];
+
+// Simulate Hashcat password cracking times with different attack methods and GPUs
+export function simulateHashcatCrack(password: string, strength: number) {
+  const passwordLength = password.length;
+  const hasUpper = /[A-Z]/.test(password);
+  const hasLower = /[a-z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSpecial = /[^A-Za-z0-9]/.test(password);
+  
+  // Calculate character space size based on character types used
+  let charSpaceSize = 0;
+  if (hasLower) charSpaceSize += 26;
+  if (hasUpper) charSpaceSize += 26;
+  if (hasNumber) charSpaceSize += 10;
+  if (hasSpecial) charSpaceSize += 33; // Common special characters
+  
+  // Calculate combinations (conservative estimate)
+  const combinations = Math.pow(Math.max(charSpaceSize, 1), passwordLength);
+  
+  // Calculate results for each GPU and hash algorithm
+  const results = {
+    gpus: Object.keys(hashcatBenchmarks).map(gpu => {
+      const gpuData = hashcatBenchmarks[gpu as keyof typeof hashcatBenchmarks];
+      
+      return {
+        name: gpu.toUpperCase(),
+        algorithms: [
+          {
+            name: "MD5 (Unsafe)",
+            timeInSeconds: combinations / gpuData.md5
+          },
+          {
+            name: "SHA-256",
+            timeInSeconds: combinations / gpuData.sha256
+          },
+          {
+            name: "bcrypt",
+            timeInSeconds: combinations / gpuData.bcrypt
+          }
+        ]
+      };
+    }),
+    attackModes: attackModes.map(mode => {
+      return {
+        ...mode,
+        effectiveness: mode.effectivenessVsStrength(strength),
+        estimatedTime: formatTimeString(mode.timeMultiplier(strength))
+      };
+    })
+  };
+  
+  return results;
+}
+
 // Calculate time to crack based on password strength
 export function calculateTimeToCrack(password: string, strength: number): {
   regular: string;
   fastComputer: string;
   superComputer: string;
+  hashcatResults?: ReturnType<typeof simulateHashcatCrack>;
 } {
   // Base time calculation
   let secondsToCrack: number;
@@ -203,6 +309,9 @@ export function calculateTimeToCrack(password: string, strength: number): {
   // Adjust based on password length and complexity
   const lengthMultiplier = Math.max(1, Math.pow(2, password.length - 8));
   secondsToCrack *= lengthMultiplier;
+  
+  // Add hashcat simulation results
+  const hashcatResults = simulateHashcatCrack(password, strength);
   
   // Format the time string
   const formatTimeString = (seconds: number): string => {
@@ -226,6 +335,26 @@ export function calculateTimeToCrack(password: string, strength: number): {
   return {
     regular: formatTimeString(secondsToCrack),
     fastComputer: formatTimeString(secondsToCrack / 10000), // GPU cluster is ~10,000 times faster
-    superComputer: formatTimeString(secondsToCrack / 1000000) // Supercomputer is ~1,000,000 times faster
+    superComputer: formatTimeString(secondsToCrack / 1000000), // Supercomputer is ~1,000,000 times faster
+    hashcatResults
   };
+}
+
+// Format time string - this function is used in multiple places so we keep it separate
+export function formatTimeString(seconds: number): string {
+  if (seconds < 60) {
+    return `${Math.round(seconds)} seconds`;
+  } else if (seconds < 3600) {
+    return `${Math.round(seconds / 60)} minutes`;
+  } else if (seconds < 86400) {
+    return `${Math.round(seconds / 3600)} hours`;
+  } else if (seconds < 31536000) {
+    return `${Math.round(seconds / 86400)} days`;
+  } else if (seconds < 315360000) { // 10 years
+    return `${Math.round(seconds / 31536000)} years`;
+  } else if (seconds < 31536000000) { // 1000 years
+    return `${Math.round(seconds / 31536000)} years`;
+  } else {
+    return "Millions of years";
+  }
 }
