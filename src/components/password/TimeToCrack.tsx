@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Clock, Cpu, Server, Zap } from 'lucide-react';
+import { Clock, Cpu, Server, Zap, Shield, Lock } from 'lucide-react';
 
 interface TimeToCrackProps {
   crackTime: {
@@ -56,6 +56,57 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
 
   const attackType = getAttackTypeExplanation();
 
+  // Visual indicator for time to crack based on strength
+  const getTimeVisual = () => {
+    if (strength < 30) {
+      return (
+        <div className="flex items-center justify-center py-3">
+          <div className="animate-pulse flex space-x-1">
+            <Lock size={16} className="text-strength-weak" />
+            <Lock size={16} className="text-strength-weak" />
+            <Lock size={16} className="text-strength-weak" />
+            <Zap size={20} className="text-strength-weak" />
+          </div>
+          <p className="ml-2 text-xs text-strength-weak">Cracked instantly</p>
+        </div>
+      );
+    } else if (strength < 60) {
+      return (
+        <div className="flex items-center justify-center py-3">
+          <div className="animate-pulse flex space-x-1">
+            <Lock size={16} className="text-strength-medium" />
+            <Lock size={16} className="text-strength-medium" />
+            <Cpu size={20} className="text-strength-medium" />
+          </div>
+          <p className="ml-2 text-xs text-strength-medium">Cracked in hours/days</p>
+        </div>
+      );
+    } else if (strength < 80) {
+      return (
+        <div className="flex items-center justify-center py-3">
+          <div className="flex space-x-1">
+            <Lock size={16} className="text-strength-good" />
+            <Lock size={16} className="text-strength-good" />
+            <Server size={20} className="text-strength-good" />
+          </div>
+          <p className="ml-2 text-xs text-strength-good">Would take months/years</p>
+        </div>
+      );
+    } else {
+      return (
+        <div className="flex items-center justify-center py-3">
+          <div className="flex space-x-1">
+            <Shield size={16} className="text-strength-strong" />
+            <Lock size={16} className="text-strength-strong" />
+            <Lock size={16} className="text-strength-strong" />
+            <Shield size={16} className="text-strength-strong" />
+          </div>
+          <p className="ml-2 text-xs text-strength-strong">Would take centuries</p>
+        </div>
+      );
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center space-x-2 mb-2">
@@ -63,19 +114,31 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
         <h3 className="text-base font-medium">Estimated Time to Crack</h3>
       </div>
       
-      <div className="space-y-4">
+      {/* Visual representation */}
+      {getTimeVisual()}
+      
+      <div className="space-y-3">
         <div className="bg-muted/30 p-3 rounded-md">
-          <p className="text-sm font-medium mb-1">Using a typical home computer:</p>
+          <div className="flex justify-between">
+            <p className="text-sm font-medium">Using a typical home computer:</p>
+            <Clock size={16} className="text-cyber-accent" />
+          </div>
           <p className="text-lg font-bold text-foreground">{crackTime.regular}</p>
         </div>
         
         <div className="bg-muted/30 p-3 rounded-md">
-          <p className="text-sm font-medium mb-1">Using a powerful GPU cluster:</p>
+          <div className="flex justify-between">
+            <p className="text-sm font-medium">Using a powerful GPU cluster:</p>
+            <Cpu size={16} className="text-cyber-accent" />
+          </div>
           <p className="text-lg font-bold text-foreground">{crackTime.fastComputer}</p>
         </div>
         
         <div className="bg-muted/30 p-3 rounded-md">
-          <p className="text-sm font-medium mb-1">Using a supercomputer:</p>
+          <div className="flex justify-between">
+            <p className="text-sm font-medium">Using a supercomputer:</p>
+            <Server size={16} className="text-cyber-accent" />
+          </div>
           <p className="text-lg font-bold text-foreground">{crackTime.superComputer}</p>
         </div>
       </div>
@@ -86,18 +149,6 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
           <h4 className="text-sm font-medium">{attackType.title}</h4>
         </div>
         <p className="text-sm text-muted-foreground">{attackType.description}</p>
-      </div>
-      
-      <div className="pt-2 border-t border-border/30">
-        <h4 className="text-sm font-medium mb-2">Hashing methods and their security</h4>
-        <div className="space-y-2">
-          {hashingMethods.map((method, index) => (
-            <div key={index} className="text-sm">
-              <p className="font-medium">{method.name} <span className="text-xs text-muted-foreground">({method.multiplier})</span></p>
-              <p className="text-muted-foreground text-xs">{method.description}</p>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );

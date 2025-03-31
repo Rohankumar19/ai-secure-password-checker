@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { calculateTimeToCrack } from '@/utils/passwordUtils';
 import StrengthAnalysis from './StrengthAnalysis';
 import TimeToCrack from './TimeToCrack';
@@ -25,35 +24,32 @@ const PasswordFeedback: React.FC<PasswordFeedbackProps> = ({
   const crackTime = calculateTimeToCrack(password, strength);
 
   return (
-    <div className="pt-2">
-      <Tabs defaultValue="analysis" className="w-full">
-        <TabsList className="grid grid-cols-3">
-          <TabsTrigger value="analysis">Analysis</TabsTrigger>
-          <TabsTrigger value="timeToCrack">Time to Crack</TabsTrigger>
-          <TabsTrigger value="suggestions">Suggestions</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="analysis" className="mt-4">
+    <div className="pt-2 space-y-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        {/* Analysis Section */}
+        <div className="cyber-card p-4 animate-fade-in">
           <StrengthAnalysis 
             password={password}
             strength={strength}
             personalDataIssues={personalDataIssues}
           />
-        </TabsContent>
+        </div>
         
-        <TabsContent value="timeToCrack" className="mt-4">
+        {/* Time to Crack Section */}
+        <div className="cyber-card p-4 animate-fade-in">
           <TimeToCrack crackTime={crackTime} strength={strength} />
-        </TabsContent>
-        
-        <TabsContent value="suggestions" className="mt-4">
-          <PasswordSuggestions 
-            password={password} 
-            strength={strength}
-            userData={userData}
-            onSelect={onSuggestionSelect}
-          />
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
+      
+      {/* Suggestions Section */}
+      <div className="cyber-card p-4 animate-fade-in">
+        <PasswordSuggestions 
+          password={password} 
+          strength={strength}
+          userData={userData}
+          onSelect={onSuggestionSelect}
+        />
+      </div>
     </div>
   );
 };

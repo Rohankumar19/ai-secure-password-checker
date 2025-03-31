@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -27,7 +26,6 @@ const StepTwo: React.FC<StepTwoProps> = ({ userData, onComplete, onBack }) => {
   const [strength, setStrength] = useState(0);
   const [personalDataIssues, setPersonalDataIssues] = useState<string[]>([]);
   
-  // Form validation schema with dynamic password requirements
   const formSchema = z.object({
     password: z
       .string()
@@ -51,18 +49,14 @@ const StepTwo: React.FC<StepTwoProps> = ({ userData, onComplete, onBack }) => {
 
   useEffect(() => {
     if (password) {
-      // Calculate strength
       const calculatedStrength = calculatePasswordStrength(password);
       setStrength(calculatedStrength);
       
-      // Check against personal data
       const issues = checkAgainstPersonalData(password, userData);
       setPersonalDataIssues(issues);
       
-      // Update form value
       form.setValue("password", password);
       
-      // Trigger validation
       form.trigger("password");
     } else {
       setStrength(0);
