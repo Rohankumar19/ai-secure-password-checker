@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { RefreshCw, Check, ArrowRight } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -20,6 +19,8 @@ const PasswordSuggestions: React.FC<PasswordSuggestionsProps> = ({
 }) => {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [pendingSuggestion, setPendingSuggestion] = useState<string | null>(null);
 
   // Generate suggestions when password changes
   useEffect(() => {
@@ -39,27 +40,38 @@ const PasswordSuggestions: React.FC<PasswordSuggestionsProps> = ({
     
     setSuggestions(newSuggestions);
     setSelectedIndex(null);
+    setShowConfirmation(false);
+    setPendingSuggestion(null);
   };
 
   const handleSelectSuggestion = (index: number) => {
     setSelectedIndex(index);
-    onSelect(suggestions[index]);
+    setPendingSuggestion(suggestions[index]);
+    setShowConfirmation(true);
+  };
+
+  const handleConfirmSuggestion = () => {
+    if (pendingSuggestion) {
+      onSelect(pendingSuggestion);
+      setShowConfirmation(false);
+      setPendingSuggestion(null);
+    }
+  };
+
+  const handleCancelSuggestion = () => {
+    setShowConfirmation(false);
+    setPendingSuggestion(null);
   };
 
   // Display the transformation details
   const getTransformationExample = (original: string, transformed: string) => {
     if (!original || original.length < 3) return null;
     
-    let leetExample = original.replace(/[aeiosblt]/gi, m => {
-      const replacement = { 'a': '4', 'e': '3', 'i': '1', 'o': '0', 's': '5', 'b': '8', 'l': '1', 't': '7' }[m.toLowerCase()];
-      return replacement || m;
-    });
-    
     return (
       <div className="space-y-1 text-xs mt-1">
         <div><span className="text-muted-foreground">Original:</span> {original}</div>
         <div className="flex items-center">
-          <span className="text-muted-foreground mr-1">Transformations:</span> 
+          <span className="text-muted-foreground mr-1">Suggested:</span> 
           <ArrowRight size={10} className="text-muted-foreground mx-1" />
           <span className="font-mono text-strength-good">{transformed}</span>
         </div>
@@ -109,6 +121,31 @@ const PasswordSuggestions: React.FC<PasswordSuggestionsProps> = ({
           </div>
         ))}
       </div>
+
+      {showConfirmation && pendingSuggestion && (
+        <div className="mt-4 p-4 bg-muted/30 rounded-md border border-primary/20">
+          <h4 className="text-sm font-medium mb-2">Confirm Password Change</h4>
+          <p className="text-sm text-muted-foreground mb-4">
+            Are you sure you want to use this suggested password? Make sure to save it securely.
+          </p>
+          <div className="flex space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCancelSuggestion}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={handleConfirmSuggestion}
+            >
+              Use This Password
+            </Button>
+          </div>
+        </div>
+      )}
       
       <div className="text-sm mt-2">
         <p className="text-muted-foreground text-xs">

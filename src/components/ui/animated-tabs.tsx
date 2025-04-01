@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from "react";
@@ -17,15 +16,34 @@ export const AnimatedTabs = ({
   activeTabClassName,
   tabClassName,
   contentClassName,
+  defaultTab,
 }: {
   tabs: Tab[];
   containerClassName?: string;
   activeTabClassName?: string;
   tabClassName?: string;
   contentClassName?: string;
+  defaultTab?: string;
 }) => {
-  const [active, setActive] = useState<Tab>(propTabs[0]);
-  const [tabs, setTabs] = useState<Tab[]>(propTabs);
+  const [active, setActive] = useState<Tab>(() => {
+    if (defaultTab) {
+      const defaultTabIndex = propTabs.findIndex(tab => tab.value === defaultTab);
+      return defaultTabIndex !== -1 ? propTabs[defaultTabIndex] : propTabs[0];
+    }
+    return propTabs[0];
+  });
+  const [tabs, setTabs] = useState<Tab[]>(() => {
+    if (defaultTab) {
+      const defaultTabIndex = propTabs.findIndex(tab => tab.value === defaultTab);
+      if (defaultTabIndex !== -1) {
+        const newTabs = [...propTabs];
+        const selectedTab = newTabs.splice(defaultTabIndex, 1);
+        newTabs.unshift(selectedTab[0]);
+        return newTabs;
+      }
+    }
+    return propTabs;
+  });
 
   const moveSelectedTabToTop = (idx: number) => {
     const newTabs = [...propTabs];

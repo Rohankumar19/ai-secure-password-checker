@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Clock, Cpu, Server, Zap, Shield, Lock, Book, Table, Calendar } from 'lucide-react';
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -212,7 +211,7 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
                 <p className="text-sm font-medium">Using a typical home computer:</p>
                 <Clock size={16} className="text-cyber-accent" />
               </div>
-              <p className="text-lg font-bold text-foreground">{crackTime.regular}</p>
+              <p className={`text-lg font-bold ${getTimeColor(crackTime.regular)}`}>{crackTime.regular}</p>
             </div>
             
             <div className="bg-muted/30 p-3 rounded-md">
@@ -220,7 +219,7 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
                 <p className="text-sm font-medium">Using a powerful GPU cluster:</p>
                 <Cpu size={16} className="text-cyber-accent" />
               </div>
-              <p className="text-lg font-bold text-foreground">{crackTime.fastComputer}</p>
+              <p className={`text-lg font-bold ${getTimeColor(crackTime.fastComputer)}`}>{crackTime.fastComputer}</p>
             </div>
             
             <div className="bg-muted/30 p-3 rounded-md">
@@ -228,7 +227,7 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
                 <p className="text-sm font-medium">Using a supercomputer:</p>
                 <Server size={16} className="text-cyber-accent" />
               </div>
-              <p className="text-lg font-bold text-foreground">{crackTime.superComputer}</p>
+              <p className={`text-lg font-bold ${getTimeColor(crackTime.superComputer)}`}>{crackTime.superComputer}</p>
             </div>
             
             <div className="pt-2 border-t border-border/30">
@@ -404,7 +403,7 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
       {getTimeVisual()}
       
       <div className="h-[400px] relative border border-cyber-primary/20 rounded-xl shadow-lg overflow-hidden">
-        <AnimatedTabs tabs={crackTimeTabs} />
+        <AnimatedTabs tabs={crackTimeTabs} defaultTab="overview" />
       </div>
     </div>
   );

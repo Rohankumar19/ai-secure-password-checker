@@ -92,43 +92,46 @@ const specialChars = ['!', '@', '#', '$', '%', '&', '*', '?', '+', '=', '^', '~'
 
 export function generateStrongPassword(userPassword: string): string {
   if (!userPassword || userPassword.length < 3) {
-    return "Str0ng#P@ss!23";
-  }
-  
-  // Step 1: Apply leetspeak conversion with higher probability
-  let strengthened = userPassword.split('').map(char => {
-    // 80% chance to convert applicable characters to leetspeak
-    if (leetMap[char.toLowerCase()] && Math.random() > 0.2) {
-      return leetMap[char.toLowerCase()];
-    }
-    
-    // 60% chance to uppercase letters
-    if (/[a-z]/.test(char) && Math.random() > 0.4) {
-      return char.toUpperCase();
-    }
-    
-    return char;
-  }).join('');
-  
-  // Step 2: Add special characters at strategic positions
-  // Insert 2-4 special characters
-  const numSpecialChars = Math.floor(Math.random() * 3) + 2;
-  for (let i = 0; i < numSpecialChars; i++) {
-    const position = Math.floor(Math.random() * (strengthened.length + 1));
+    // Generate a memorable password using a combination of words and numbers
+    const words = [
+      "secure", "shield", "guard", "protect", "defend", "safeguard",
+      "fortress", "battle", "victory", "power", "strength", "mighty"
+    ];
+    const word1 = words[Math.floor(Math.random() * words.length)];
+    const word2 = words[Math.floor(Math.random() * words.length)];
+    const number = Math.floor(Math.random() * 999) + 1;
     const specialChar = specialChars[Math.floor(Math.random() * specialChars.length)];
-    strengthened = strengthened.slice(0, position) + specialChar + strengthened.slice(position);
+    
+    // Capitalize first letter of each word
+    const capitalizedWord1 = word1.charAt(0).toUpperCase() + word1.slice(1);
+    const capitalizedWord2 = word2.charAt(0).toUpperCase() + word2.slice(1);
+    
+    return `${capitalizedWord1}${number}${specialChar}${capitalizedWord2}`;
   }
   
-  // Step 3: Enhance length and uniqueness if needed
+  // If user provided a password, make it stronger while keeping it memorable
+  let strengthened = userPassword;
+  
+  // Step 1: Capitalize first letter if it's lowercase
+  if (/[a-z]/.test(strengthened[0])) {
+    strengthened = strengthened[0].toUpperCase() + strengthened.slice(1);
+  }
+  
+  // Step 2: Add a memorable number (year or age)
+  const currentYear = new Date().getFullYear();
+  const memorableNumber = Math.random() > 0.5 ? currentYear : Math.floor(Math.random() * 99) + 1;
+  strengthened += memorableNumber.toString();
+  
+  // Step 3: Add a memorable special character
+  const memorableSpecialChars = ['!', '@', '#', '$'];
+  const specialChar = memorableSpecialChars[Math.floor(Math.random() * memorableSpecialChars.length)];
+  strengthened += specialChar;
+  
+  // Step 4: Ensure minimum length and add a memorable word if needed
   if (strengthened.length < 12) {
-    // Add random characters to reach minimum length of 12
-    const additionalLength = 12 - strengthened.length;
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
-    let extraChars = '';
-    for (let i = 0; i < additionalLength; i++) {
-      extraChars += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    strengthened += extraChars;
+    const shortWords = ["now", "yes", "win", "top", "max", "pro"];
+    const word = shortWords[Math.floor(Math.random() * shortWords.length)];
+    strengthened += word.charAt(0).toUpperCase() + word.slice(1);
   }
   
   // Ensure the password has at least one uppercase, lowercase, number, and special character
@@ -137,8 +140,8 @@ export function generateStrongPassword(userPassword: string): string {
   let hasNumber = /[0-9]/.test(strengthened);
   let hasSpecial = /[^A-Za-z0-9]/.test(strengthened);
   
-  if (!hasUpper) strengthened += 'Q';
-  if (!hasLower) strengthened += 'q';
+  if (!hasUpper) strengthened = strengthened.charAt(0).toUpperCase() + strengthened.slice(1);
+  if (!hasLower) strengthened = strengthened.replace(/[A-Z]/, char => char.toLowerCase());
   if (!hasNumber) strengthened += '7';
   if (!hasSpecial) strengthened += '#';
   
