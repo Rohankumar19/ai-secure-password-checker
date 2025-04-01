@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
 import { Clock, Cpu, Server, Zap, Shield, Lock, Book, Table, Calendar } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { AnimatedTabs } from "@/components/ui/animated-tabs";
 
 interface TimeToCrackProps {
   crackTime: {
@@ -30,7 +30,6 @@ interface TimeToCrackProps {
 }
 
 const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
-  const [activeTab, setActiveTab] = useState("overview");
   const isMobile = useIsMobile();
   
   // Information about different hashing methods
@@ -200,25 +199,13 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
     return "text-strength-strong";
   };
 
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center space-x-2 mb-2">
-        <Clock size={20} className="text-cyber-accent" />
-        <h3 className="text-base font-medium">Time to Crack Simulation</h3>
-      </div>
-      
-      {/* Visual representation */}
-      {getTimeVisual()}
-      
-      <Tabs defaultValue="overview" className="w-full" onValueChange={setActiveTab}>
-        <TabsList className={`grid w-full ${isMobile ? 'grid-cols-1 gap-1' : 'grid-cols-4'}`}>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="hashcat">Hashcat GPU</TabsTrigger>
-          <TabsTrigger value="attacks">Attack Types</TabsTrigger>
-          <TabsTrigger value="lifespan">Lifespan</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="overview" className="space-y-3 mt-2">
+  // Prepare tabs for the animated tabs component
+  const crackTimeTabs = [
+    {
+      title: "Overview",
+      value: "overview",
+      content: (
+        <div className="bg-cyber-dark/80 rounded-xl p-4 space-y-3">
           <div className="bg-muted/30 p-3 rounded-md">
             <div className="flex justify-between">
               <p className="text-sm font-medium">Using a typical home computer:</p>
@@ -250,9 +237,14 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
             </div>
             <p className="text-sm text-muted-foreground">{attackType.description}</p>
           </div>
-        </TabsContent>
-        
-        <TabsContent value="hashcat" className="space-y-3 mt-2">
+        </div>
+      ),
+    },
+    {
+      title: "Hashcat GPU",
+      value: "hashcat",
+      content: (
+        <div className="bg-cyber-dark/80 rounded-xl p-4 space-y-3">
           <div className="text-sm text-muted-foreground mb-2">
             <p>Real-world password cracking times with Hashcat on different GPUs:</p>
           </div>
@@ -278,9 +270,14 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
           <div className="text-xs text-muted-foreground mt-2 bg-muted/20 p-2 rounded">
             <p>Hashcat is the world's fastest password recovery tool, commonly used in security audits and by attackers.</p>
           </div>
-        </TabsContent>
-        
-        <TabsContent value="attacks" className="space-y-3 mt-2">
+        </div>
+      ),
+    },
+    {
+      title: "Attack Types",
+      value: "attacks",
+      content: (
+        <div className="bg-cyber-dark/80 rounded-xl p-4 space-y-3">
           {crackTime.hashcatResults?.attackModes.map((attack, index) => (
             <div key={index} className="bg-muted/30 p-3 rounded-md">
               <div className="flex justify-between items-center">
@@ -307,9 +304,14 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
               </div>
             </div>
           ))}
-        </TabsContent>
-        
-        <TabsContent value="lifespan" className="space-y-3 mt-2">
+        </div>
+      ),
+    },
+    {
+      title: "Lifespan",
+      value: "lifespan",
+      content: (
+        <div className="bg-cyber-dark/80 rounded-xl p-4 space-y-3">
           <div className="bg-muted/30 p-4 rounded-md">
             <div className="flex justify-between items-center mb-3">
               <div className="flex items-center space-x-2">
@@ -378,8 +380,24 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
               </table>
             </div>
           </div>
-        </TabsContent>
-      </Tabs>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center space-x-2 mb-2">
+        <Clock size={20} className="text-cyber-accent" />
+        <h3 className="text-base font-medium">Time to Crack Simulation</h3>
+      </div>
+      
+      {/* Visual representation */}
+      {getTimeVisual()}
+      
+      <div className="h-[360px] sm:h-[400px] md:h-[420px] relative">
+        <AnimatedTabs tabs={crackTimeTabs} />
+      </div>
     </div>
   );
 };
