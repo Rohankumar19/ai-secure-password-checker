@@ -26,18 +26,52 @@ const StrengthAnalysis: React.FC<StrengthAnalysisProps> = ({
     }
   };
 
-  // Check for common password patterns
+  // Check for common password patterns - improved dictionary attack detection
   const commonPatterns = [
     { test: /^[0-9]+$/, message: "Using only numbers is very weak" },
     { test: /^[a-zA-Z]+$/, message: "Using only letters without numbers or special characters is weak" },
     { test: /(.)\1{2,}/, message: "Repeated characters (e.g., 'aaa') weaken your password" },
-    { test: /^(password|admin|user|login).*$/i, message: "Your password contains common words that are easily guessed" },
-    { test: /^(qwerty|asdfgh|zxcvbn).*$/i, message: "Your password contains keyboard patterns that are easily guessed" },
+    { test: /^(password|admin|user|login|welcome|qwerty|123456).*$/i, message: "Your password contains common words that are easily guessed" },
+    { test: /^(qwerty|asdfgh|zxcvbn|12345|09876).*$/i, message: "Your password contains keyboard patterns that are easily guessed" },
     { test: /^.{1,7}$/, message: "Your password is too short" },
+    // Enhanced dictionary attack check for common password variations
+    { test: (pwd: string) => {
+        const commonBases = ['password', 'admin', 'welcome', 'letmein', 'monkey', 'dragon', 'master'];
+        const lowerPwd = pwd.toLowerCase();
+        
+        // Check for common bases with numbers appended (e.g., password123)
+        for (const base of commonBases) {
+          if (lowerPwd.includes(base)) return true;
+        }
+        
+        // Check for simple leetspeak transformations
+        const leetCheck = pwd.toLowerCase()
+          .replace(/0/g, 'o')
+          .replace(/1/g, 'i')
+          .replace(/3/g, 'e')
+          .replace(/4/g, 'a')
+          .replace(/5/g, 's')
+          .replace(/\$/g, 's')
+          .replace(/@/g, 'a');
+          
+        for (const base of commonBases) {
+          if (leetCheck.includes(base)) return true;
+        }
+        
+        return false;
+      }, 
+      message: "Your password is similar to commonly used passwords (including leetspeak variations)"
+    }
   ];
 
+  // Process the pattern checks, handling the function-based test separately
   const patternIssues = commonPatterns
-    .filter(pattern => pattern.test.test(password))
+    .filter(pattern => {
+      if (typeof pattern.test === 'function') {
+        return pattern.test(password);
+      }
+      return pattern.test.test(password);
+    })
     .map(pattern => pattern.message);
 
   // Positive aspects of the password

@@ -30,6 +30,46 @@ export function calculatePasswordStrength(password: string): number {
   // Check for keyboard patterns
   if (/qwert|asdfg|zxcvb|12345|09876/i.test(password)) score -= 15;
   
+  // Improved dictionary check (common passwords)
+  const commonPasswords = [
+    "123456", "password", "qwerty", "admin", "welcome", "123456789",
+    "12345678", "abc123", "football", "monkey", "letmein", "dragon",
+    "baseball", "sunshine", "princess", "superman", "trustno1"
+  ];
+  
+  // Check for exact matches and similar patterns
+  for (const common of commonPasswords) {
+    // Exact match
+    if (password.toLowerCase() === common) {
+      score -= 30;
+      break;
+    }
+    
+    // Similar pattern (common password + numbers)
+    const commonWithNumbers = new RegExp(`^${common}\\d+$`, 'i');
+    if (commonWithNumbers.test(password)) {
+      score -= 25;
+      break;
+    }
+  }
+  
+  // Check for simple leetspeak variations
+  const leetPassword = password.toLowerCase()
+    .replace(/0/g, 'o')
+    .replace(/1/g, 'i')
+    .replace(/3/g, 'e')
+    .replace(/4/g, 'a')
+    .replace(/5/g, 's')
+    .replace(/\$/g, 's')
+    .replace(/@/g, 'a');
+    
+  for (const common of commonPasswords) {
+    if (leetPassword.includes(common)) {
+      score -= 20;
+      break;
+    }
+  }
+  
   // Ensure score is between 0-100
   return Math.max(0, Math.min(100, Math.round(score)));
 }
@@ -105,12 +145,12 @@ export function generateStrongPassword(userPassword: string): string {
   return strengthened;
 }
 
-// Check if password contains personal data
+// Check if password contains personal data - improved to catch more patterns
 export function checkAgainstPersonalData(password: string, userData: any): string[] {
   const issues: string[] = [];
   const lowercasePassword = password.toLowerCase();
   
-  // Check against name
+  // Check against name - improved to catch variations
   if (userData.fullName) {
     const nameParts = userData.fullName.toLowerCase().split(' ');
     for (const part of nameParts) {
@@ -118,36 +158,68 @@ export function checkAgainstPersonalData(password: string, userData: any): strin
         issues.push(`Password contains part of your name: "${part}"`);
         break;
       }
-    }
-  }
-  
-  // Check against email
-  if (userData.email) {
-    const emailParts = userData.email.toLowerCase().split('@')[0].split('.');
-    for (const part of emailParts) {
-      if (part.length > 2 && lowercasePassword.includes(part)) {
-        issues.push(`Password contains part of your email: "${part}"`);
+      
+      // Check for name backwards
+      const reversedPart = part.split('').reverse().join('');
+      if (part.length > 3 && lowercasePassword.includes(reversedPart)) {
+        issues.push(`Password contains your name reversed: "${reversedPart}"`);
         break;
       }
     }
   }
   
-  // Check against birth date
+  // Check against email - improved patterns
+  if (userData.email) {
+    const emailUsername = userData.email.toLowerCase().split('@')[0];
+    const emailParts = emailUsername.split('.');
+    
+    // Check full username
+    if (emailUsername.length > 3 && lowercasePassword.includes(emailUsername)) {
+      issues.push(`Password contains your email username: "${emailUsername}"`);
+    } else {
+      // Check email parts
+      for (const part of emailParts) {
+        if (part.length > 2 && lowercasePassword.includes(part)) {
+          issues.push(`Password contains part of your email: "${part}"`);
+          break;
+        }
+      }
+    }
+    
+    // Check domain name as well
+    if (userData.email.includes('@')) {
+      const domain = userData.email.split('@')[1].split('.')[0].toLowerCase();
+      if (domain.length > 3 && lowercasePassword.includes(domain)) {
+        issues.push(`Password contains your email domain: "${domain}"`);
+      }
+    }
+  }
+  
+  // Check against birth date - improved to catch more date formats
   if (userData.dateOfBirth) {
     const date = new Date(userData.dateOfBirth);
     const year = date.getFullYear().toString();
+    const shortYear = year.slice(2); // Last two digits of year
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const day = date.getDate().toString().padStart(2, '0');
     
+    // Check year patterns
     if (lowercasePassword.includes(year)) {
       issues.push(`Password contains your birth year: "${year}"`);
+    } else if (lowercasePassword.includes(shortYear)) {
+      issues.push(`Password contains your birth year: "${shortYear}"`);
     }
     
+    // Check various date formats
     const dateFormats = [
       `${month}${day}`,
       `${day}${month}`,
       `${month}-${day}`,
-      `${day}-${month}`
+      `${day}-${month}`,
+      `${month}/${day}`,
+      `${day}/${month}`,
+      `${month}.${day}`,
+      `${day}.${month}`
     ];
     
     for (const format of dateFormats) {
@@ -156,19 +228,39 @@ export function checkAgainstPersonalData(password: string, userData: any): strin
         break;
       }
     }
+    
+    // Check for birth year + month/day combination
+    const yearMonthDay = `${year}${month}${day}`;
+    const dayMonthYear = `${day}${month}${year}`;
+    if (lowercasePassword.includes(yearMonthDay) || lowercasePassword.includes(dayMonthYear)) {
+      issues.push(`Password contains your full birth date`);
+    }
   }
   
-  // Check against common leaked passwords (simplified for the exercise)
+  // Check against expanded list of common leaked passwords
   const commonLeakedPasswords = [
     "123456", "password", "123456789", "12345678", "12345", "qwerty", 
     "1234567", "111111", "1234567890", "123123", "admin", "letmein", 
     "welcome", "monkey", "login", "abc123", "starwars", "dragon", 
-    "passw0rd", "master", "hello", "freedom", "whatever", "qazwsx"
+    "passw0rd", "master", "hello", "freedom", "whatever", "qazwsx",
+    "trustno1", "baseball", "jennifer", "superman", "iloveyou", "princess",
+    "adobe123", "football", "123qwe", "sunshine", "654321", "pass", 
+    "shadow", "michael", "121212", "hottie", "bailey", "daniel"
   ];
   
+  // Improved check for leaked passwords
   for (const leaked of commonLeakedPasswords) {
     if (lowercasePassword === leaked) {
       issues.push(`Password is in the list of commonly leaked passwords: "${leaked}"`);
+      break;
+    }
+    
+    // Check for simple variations of common passwords
+    if ((leaked.length > 4) && 
+        (lowercasePassword.startsWith(leaked) || 
+         lowercasePassword.endsWith(leaked) || 
+         lowercasePassword.includes(leaked))) {
+      issues.push(`Password contains a common leaked password pattern: "${leaked}"`);
       break;
     }
   }
@@ -197,7 +289,7 @@ const hashcatBenchmarks = {
   }
 };
 
-// Attack modes simulation data
+// Attack modes simulation data - improved with better explanations and time calculations
 const attackModes = [
   {
     name: "Brute Force",
@@ -209,22 +301,50 @@ const attackModes = [
   {
     name: "Dictionary Attack",
     description: "Uses lists of common words and passwords",
-    effectivenessVsStrength: (strength: number) => strength >= 50 ? "Low" : "Very High",
-    timeMultiplier: (strength: number) => Math.pow(10, strength / 20),
+    effectivenessVsStrength: (strength: number) => {
+      // Dictionary attacks are very effective against weak passwords
+      // and become less effective as password strength increases
+      if (strength < 40) return "Very High";
+      if (strength < 60) return "Medium";
+      return "Low";
+    },
+    timeMultiplier: (strength: number) => {
+      // Dictionary attacks are fast for common passwords but slow for strong ones
+      if (strength < 30) return 1; // Instant for very weak passwords
+      if (strength < 50) return Math.pow(10, 2); // Medium for weak passwords
+      return Math.pow(10, strength / 15); // Grows slower than brute force for stronger passwords
+    },
     icon: "book"
   },
   {
     name: "Rainbow Table",
     description: "Uses precomputed tables to crack password hashes",
-    effectivenessVsStrength: (strength: number) => strength >= 60 ? "Low" : "High",
-    timeMultiplier: (strength: number) => Math.pow(10, strength / 15),
+    effectivenessVsStrength: (strength: number) => {
+      if (strength < 30) return "Very High";
+      if (strength < 50) return "High";
+      if (strength < 70) return "Medium";
+      return "Low";
+    },
+    timeMultiplier: (strength: number) => {
+      // Rainbow tables are very effective on simple passwords
+      if (strength < 40) return Math.pow(10, 1);
+      return Math.pow(10, strength / 15);
+    },
     icon: "table"
   },
   {
     name: "Hybrid Attack",
     description: "Combines dictionary words with patterns and special characters",
-    effectivenessVsStrength: (strength: number) => strength >= 80 ? "Low" : "Medium",
-    timeMultiplier: (strength: number) => Math.pow(10, strength / 12),
+    effectivenessVsStrength: (strength: number) => {
+      if (strength < 50) return "High";
+      if (strength < 75) return "Medium";
+      return "Low";
+    },
+    timeMultiplier: (strength: number) => {
+      // Hybrid attacks are more effective than pure brute force on medium-strength passwords
+      if (strength < 60) return Math.pow(10, strength / 15);
+      return Math.pow(10, strength / 12);
+    },
     icon: "combine"
   }
 ];
