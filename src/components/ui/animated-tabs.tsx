@@ -38,10 +38,10 @@ export const AnimatedTabs = ({
   const [hovering, setHovering] = useState(false);
 
   return (
-    <>
+    <div className="flex flex-col w-full h-full">
       <div
         className={cn(
-          "flex flex-row items-center justify-start relative overflow-hidden max-w-full w-full bg-cyber-dark/90 p-2 rounded-t-xl",
+          "flex flex-row items-center justify-start relative overflow-hidden max-w-full w-full bg-cyber-dark rounded-t-xl px-2 py-1",
           containerClassName
         )}
       >
@@ -53,7 +53,7 @@ export const AnimatedTabs = ({
             }}
             onMouseEnter={() => setHovering(true)}
             onMouseLeave={() => setHovering(false)}
-            className={cn("relative px-4 py-2 rounded-full", tabClassName)}
+            className={cn("relative px-4 py-2 rounded-full text-sm", tabClassName)}
           >
             {active.value === tab.value && (
               <motion.div
@@ -72,22 +72,24 @@ export const AnimatedTabs = ({
           </button>
         ))}
       </div>
-      <FadeInDiv
-        tabs={tabs}
-        active={active}
-        key={active.value}
-        hovering={hovering}
-        className={cn("mt-2", contentClassName)}
-      />
-    </>
+      <div className="flex-1 overflow-hidden rounded-b-xl bg-cyber-dark">
+        <FadeInDiv
+          tabs={tabs}
+          active={active}
+          key={active.value}
+          hovering={hovering}
+          className={contentClassName}
+        />
+      </div>
+    </div>
   );
 };
 
 export const FadeInDiv = ({
   className,
   tabs,
-  hovering,
   active,
+  hovering,
 }: {
   className?: string;
   key?: string;
@@ -99,21 +101,21 @@ export const FadeInDiv = ({
     return tab.value === tabs[0].value;
   };
   return (
-    <div className="relative w-full h-full overflow-hidden rounded-b-xl bg-cyber-dark/90 p-2">
+    <div className="relative w-full h-full overflow-hidden">
       {tabs.map((tab, idx) => (
         <motion.div
           key={tab.value}
           layoutId={tab.value}
           style={{
-            scale: 1 - idx * 0.1,
-            top: hovering ? idx * -10 : 0,
+            scale: 1 - idx * 0.05,
+            top: hovering ? idx * -5 : 0,
             zIndex: -idx,
             opacity: idx < 3 ? 1 - idx * 0.1 : 0,
           }}
           animate={{
             y: isActive(tab) ? [0, 5, 0] : 0,
           }}
-          className={cn("w-full h-full absolute top-0 left-0", className)}
+          className={cn("w-full h-full absolute top-0 left-0 p-3", className)}
         >
           {tab.content}
         </motion.div>

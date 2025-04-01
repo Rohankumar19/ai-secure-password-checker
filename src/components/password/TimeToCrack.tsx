@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Clock, Cpu, Server, Zap, Shield, Lock, Book, Table, Calendar } from 'lucide-react';
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -204,37 +205,39 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
       title: "Overview",
       value: "overview",
       content: (
-        <div className="bg-cyber-dark rounded-xl p-4 space-y-3">
-          <div className="bg-muted/30 p-3 rounded-md">
-            <div className="flex justify-between">
-              <p className="text-sm font-medium">Using a typical home computer:</p>
-              <Clock size={16} className="text-cyber-accent" />
+        <div className="h-full bg-cyber-dark rounded-xl">
+          <div className="p-3 space-y-3">
+            <div className="bg-muted/30 p-3 rounded-md">
+              <div className="flex justify-between">
+                <p className="text-sm font-medium">Using a typical home computer:</p>
+                <Clock size={16} className="text-cyber-accent" />
+              </div>
+              <p className="text-lg font-bold text-foreground">{crackTime.regular}</p>
             </div>
-            <p className="text-lg font-bold text-foreground">{crackTime.regular}</p>
-          </div>
-          
-          <div className="bg-muted/30 p-3 rounded-md">
-            <div className="flex justify-between">
-              <p className="text-sm font-medium">Using a powerful GPU cluster:</p>
-              <Cpu size={16} className="text-cyber-accent" />
+            
+            <div className="bg-muted/30 p-3 rounded-md">
+              <div className="flex justify-between">
+                <p className="text-sm font-medium">Using a powerful GPU cluster:</p>
+                <Cpu size={16} className="text-cyber-accent" />
+              </div>
+              <p className="text-lg font-bold text-foreground">{crackTime.fastComputer}</p>
             </div>
-            <p className="text-lg font-bold text-foreground">{crackTime.fastComputer}</p>
-          </div>
-          
-          <div className="bg-muted/30 p-3 rounded-md">
-            <div className="flex justify-between">
-              <p className="text-sm font-medium">Using a supercomputer:</p>
-              <Server size={16} className="text-cyber-accent" />
+            
+            <div className="bg-muted/30 p-3 rounded-md">
+              <div className="flex justify-between">
+                <p className="text-sm font-medium">Using a supercomputer:</p>
+                <Server size={16} className="text-cyber-accent" />
+              </div>
+              <p className="text-lg font-bold text-foreground">{crackTime.superComputer}</p>
             </div>
-            <p className="text-lg font-bold text-foreground">{crackTime.superComputer}</p>
-          </div>
-          
-          <div className="pt-2 border-t border-border/30">
-            <div className="flex items-center space-x-2 mb-2">
-              {attackType.icon}
-              <h4 className="text-sm font-medium">{attackType.title}</h4>
+            
+            <div className="pt-2 border-t border-border/30">
+              <div className="flex items-center space-x-2 mb-2">
+                {attackType.icon}
+                <h4 className="text-sm font-medium">{attackType.title}</h4>
+              </div>
+              <p className="text-sm text-muted-foreground">{attackType.description}</p>
             </div>
-            <p className="text-sm text-muted-foreground">{attackType.description}</p>
           </div>
         </div>
       ),
@@ -243,31 +246,33 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
       title: "Hashcat GPU",
       value: "hashcat",
       content: (
-        <div className="bg-cyber-dark rounded-xl p-4 space-y-3">
-          <div className="text-sm text-muted-foreground mb-2">
-            <p>Real-world password cracking times with Hashcat on different GPUs:</p>
-          </div>
-          
-          {crackTime.hashcatResults?.gpus.map((gpu, gpuIndex) => (
-            <div key={gpuIndex} className="bg-muted/30 p-3 rounded-md space-y-2">
-              <div className="flex justify-between items-center">
-                <p className="font-medium">{gpu.name}</p>
-                <Cpu size={16} className="text-cyber-accent" />
-              </div>
-              
-              {gpu.algorithms.map((algo, algoIndex) => (
-                <div key={algoIndex} className="flex justify-between items-center border-t border-border/20 pt-1">
-                  <span className="text-sm">{algo.name}:</span>
-                  <span className={`text-sm font-medium ${getTimeColor(formatHashcatTime(algo.timeInSeconds))}`}>
-                    {formatHashcatTime(algo.timeInSeconds)}
-                  </span>
-                </div>
-              ))}
+        <div className="h-full bg-cyber-dark rounded-xl">
+          <div className="p-3 space-y-3 overflow-y-auto max-h-[280px]">
+            <div className="text-sm text-muted-foreground mb-2">
+              <p>Real-world password cracking times with Hashcat on different GPUs:</p>
             </div>
-          ))}
-          
-          <div className="text-xs text-muted-foreground mt-2 bg-muted/20 p-2 rounded">
-            <p>Hashcat is the world's fastest password recovery tool, commonly used in security audits and by attackers.</p>
+            
+            {crackTime.hashcatResults?.gpus.map((gpu, gpuIndex) => (
+              <div key={gpuIndex} className="bg-muted/30 p-3 rounded-md space-y-2">
+                <div className="flex justify-between items-center">
+                  <p className="font-medium">{gpu.name}</p>
+                  <Cpu size={16} className="text-cyber-accent" />
+                </div>
+                
+                {gpu.algorithms.map((algo, algoIndex) => (
+                  <div key={algoIndex} className="flex justify-between items-center border-t border-border/20 pt-1">
+                    <span className="text-sm">{algo.name}:</span>
+                    <span className={`text-sm font-medium ${getTimeColor(formatHashcatTime(algo.timeInSeconds))}`}>
+                      {formatHashcatTime(algo.timeInSeconds)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ))}
+            
+            <div className="text-xs text-muted-foreground mt-2 bg-muted/20 p-2 rounded">
+              <p>Hashcat is the world's fastest password recovery tool, commonly used in security audits and by attackers.</p>
+            </div>
           </div>
         </div>
       ),
@@ -276,33 +281,35 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
       title: "Attack Types",
       value: "attacks",
       content: (
-        <div className="bg-cyber-dark rounded-xl p-4 space-y-3">
-          {crackTime.hashcatResults?.attackModes.map((attack, index) => (
-            <div key={index} className="bg-muted/30 p-3 rounded-md">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center space-x-2">
-                  {getAttackIcon(attack.icon)}
-                  <p className="font-medium">{attack.name}</p>
+        <div className="h-full bg-cyber-dark rounded-xl">
+          <div className="p-3 space-y-3 overflow-y-auto max-h-[280px]">
+            {crackTime.hashcatResults?.attackModes.map((attack, index) => (
+              <div key={index} className="bg-muted/30 p-3 rounded-md">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center space-x-2">
+                    {getAttackIcon(attack.icon)}
+                    <p className="font-medium">{attack.name}</p>
+                  </div>
+                  <span className={`text-xs px-2 py-0.5 rounded ${
+                    attack.effectiveness === "Low" ? "bg-green-500/20 text-green-500" : 
+                    attack.effectiveness === "Medium" ? "bg-yellow-500/20 text-yellow-500" : 
+                    "bg-red-500/20 text-red-500"
+                  }`}>
+                    {attack.effectiveness}
+                  </span>
                 </div>
-                <span className={`text-xs px-2 py-0.5 rounded ${
-                  attack.effectiveness === "Low" ? "bg-green-500/20 text-green-500" : 
-                  attack.effectiveness === "Medium" ? "bg-yellow-500/20 text-yellow-500" : 
-                  "bg-red-500/20 text-red-500"
-                }`}>
-                  {attack.effectiveness}
-                </span>
+                
+                <p className="text-sm text-muted-foreground mt-1">{attack.description}</p>
+                
+                <div className="flex justify-between items-center mt-2 pt-1 border-t border-border/20">
+                  <span className="text-sm">Est. Time:</span>
+                  <span className={`text-sm font-medium ${getTimeColor(attack.estimatedTime)}`}>
+                    {attack.estimatedTime}
+                  </span>
+                </div>
               </div>
-              
-              <p className="text-sm text-muted-foreground mt-1">{attack.description}</p>
-              
-              <div className="flex justify-between items-center mt-2 pt-1 border-t border-border/20">
-                <span className="text-sm">Est. Time:</span>
-                <span className={`text-sm font-medium ${getTimeColor(attack.estimatedTime)}`}>
-                  {attack.estimatedTime}
-                </span>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       ),
     },
@@ -310,73 +317,75 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
       title: "Lifespan",
       value: "lifespan",
       content: (
-        <div className="bg-cyber-dark rounded-xl p-4 space-y-3">
-          <div className="bg-muted/30 p-4 rounded-md">
-            <div className="flex justify-between items-center mb-3">
-              <div className="flex items-center space-x-2">
-                <Calendar size={18} className="text-cyber-accent" />
-                <h4 className="text-sm font-medium">Recommended Password Lifespan</h4>
+        <div className="h-full bg-cyber-dark rounded-xl">
+          <div className="p-3 space-y-3 overflow-y-auto max-h-[280px]">
+            <div className="bg-muted/30 p-3 rounded-md">
+              <div className="flex justify-between items-center mb-3">
+                <div className="flex items-center space-x-2">
+                  <Calendar size={18} className="text-cyber-accent" />
+                  <h4 className="text-sm font-medium">Recommended Password Lifespan</h4>
+                </div>
+                <span className={`text-sm font-bold ${lifespan.color}`}>
+                  {lifespan.timespan}
+                </span>
               </div>
-              <span className={`text-sm font-bold ${lifespan.color}`}>
-                {lifespan.timespan}
-              </span>
-            </div>
-            
-            <p className="text-sm text-muted-foreground">{lifespan.description}</p>
-            
-            <div className="mt-4 pt-3 border-t border-border/30">
-              <h5 className="text-xs font-medium mb-2">Why passwords expire:</h5>
-              <ul className="text-xs space-y-2 text-muted-foreground">
-                <li className="flex items-start space-x-2">
-                  <span className="text-cyber-accent mt-0.5">•</span>
-                  <span>Technological advances make older passwords more vulnerable over time</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <span className="text-cyber-accent mt-0.5">•</span>
-                  <span>Undiscovered data breaches might have exposed your password</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <span className="text-cyber-accent mt-0.5">•</span>
-                  <span>Attackers gain more computing power and better cracking techniques</span>
-                </li>
-              </ul>
-            </div>
-            
-            <div className="mt-4 pt-3 border-t border-border/30">
-              <div className="flex space-x-2 items-center">
-                <Shield size={16} className="text-cyber-accent" />
-                <h5 className="text-xs font-medium">Password Aging Policy</h5>
+              
+              <p className="text-sm text-muted-foreground">{lifespan.description}</p>
+              
+              <div className="mt-4 pt-3 border-t border-border/30">
+                <h5 className="text-xs font-medium mb-2">Why passwords expire:</h5>
+                <ul className="text-xs space-y-2 text-muted-foreground">
+                  <li className="flex items-start space-x-2">
+                    <span className="text-cyber-accent mt-0.5">•</span>
+                    <span>Technological advances make older passwords more vulnerable over time</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <span className="text-cyber-accent mt-0.5">•</span>
+                    <span>Undiscovered data breaches might have exposed your password</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <span className="text-cyber-accent mt-0.5">•</span>
+                    <span>Attackers gain more computing power and better cracking techniques</span>
+                  </li>
+                </ul>
               </div>
-              <table className="w-full mt-2 text-xs">
-                <thead>
-                  <tr className="border-b border-border/30">
-                    <th className="text-left pb-1">Strength</th>
-                    <th className="text-right pb-1">Change After</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-b border-border/10">
-                    <td className="py-1 text-strength-weak">Very Weak</td>
-                    <td className="text-right">Immediately</td>
-                  </tr>
-                  <tr className="border-b border-border/10">
-                    <td className="py-1 text-strength-weak">Weak</td>
-                    <td className="text-right">1 month</td>
-                  </tr>
-                  <tr className="border-b border-border/10">
-                    <td className="py-1 text-strength-medium">Medium</td>
-                    <td className="text-right">3 months</td>
-                  </tr>
-                  <tr className="border-b border-border/10">
-                    <td className="py-1 text-strength-good">Strong</td>
-                    <td className="text-right">6 months</td>
-                  </tr>
-                  <tr>
-                    <td className="py-1 text-strength-strong">Very Strong</td>
-                    <td className="text-right">12 months</td>
-                  </tr>
-                </tbody>
-              </table>
+              
+              <div className="mt-4 pt-3 border-t border-border/30">
+                <div className="flex space-x-2 items-center">
+                  <Shield size={16} className="text-cyber-accent" />
+                  <h5 className="text-xs font-medium">Password Aging Policy</h5>
+                </div>
+                <table className="w-full mt-2 text-xs">
+                  <thead>
+                    <tr className="border-b border-border/30">
+                      <th className="text-left pb-1">Strength</th>
+                      <th className="text-right pb-1">Change After</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b border-border/10">
+                      <td className="py-1 text-strength-weak">Very Weak</td>
+                      <td className="text-right">Immediately</td>
+                    </tr>
+                    <tr className="border-b border-border/10">
+                      <td className="py-1 text-strength-weak">Weak</td>
+                      <td className="text-right">1 month</td>
+                    </tr>
+                    <tr className="border-b border-border/10">
+                      <td className="py-1 text-strength-medium">Medium</td>
+                      <td className="text-right">3 months</td>
+                    </tr>
+                    <tr className="border-b border-border/10">
+                      <td className="py-1 text-strength-good">Strong</td>
+                      <td className="text-right">6 months</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1 text-strength-strong">Very Strong</td>
+                      <td className="text-right">12 months</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
@@ -394,7 +403,7 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
       {/* Visual representation */}
       {getTimeVisual()}
       
-      <div className="h-[320px] sm:h-[360px] md:h-[380px] relative border border-cyber-primary/20 rounded-xl shadow-lg">
+      <div className="h-[400px] relative border border-cyber-primary/20 rounded-xl shadow-lg overflow-hidden">
         <AnimatedTabs tabs={crackTimeTabs} />
       </div>
     </div>
