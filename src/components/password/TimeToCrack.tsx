@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Clock, Cpu, Server, Zap, Shield, Lock, Book, Table } from 'lucide-react';
+import { Clock, Cpu, Server, Zap, Shield, Lock, Book, Table, Calendar } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -52,6 +52,41 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
     }
   ];
 
+  // Calculate password lifespan based on strength
+  const getLifespanRecommendation = () => {
+    if (strength < 30) {
+      return {
+        timespan: "Immediate",
+        description: "Change immediately! This password is severely compromised.",
+        color: "text-strength-weak"
+      };
+    } else if (strength < 50) {
+      return {
+        timespan: "1 month",
+        description: "Weak passwords should be changed very frequently.",
+        color: "text-strength-weak"
+      };
+    } else if (strength < 70) {
+      return {
+        timespan: "3 months",
+        description: "Medium-strength passwords need regular updates.",
+        color: "text-strength-medium"
+      };
+    } else if (strength < 85) {
+      return {
+        timespan: "6 months",
+        description: "Strong passwords still benefit from semi-annual changes.",
+        color: "text-strength-good"
+      };
+    } else {
+      return {
+        timespan: "12 months",
+        description: "Very strong passwords can last longer, but annual changes are still good practice.",
+        color: "text-strength-strong"
+      };
+    }
+  };
+
   // Generate explanations for different attack types
   const getAttackTypeExplanation = () => {
     if (strength < 40) {
@@ -76,6 +111,7 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
   };
 
   const attackType = getAttackTypeExplanation();
+  const lifespan = getLifespanRecommendation();
 
   // Visual indicator for time to crack based on strength
   const getTimeVisual = () => {
@@ -175,10 +211,11 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
       {getTimeVisual()}
       
       <Tabs defaultValue="overview" className="w-full" onValueChange={setActiveTab}>
-        <TabsList className={`grid w-full ${isMobile ? 'grid-cols-1 gap-1' : 'grid-cols-3'}`}>
+        <TabsList className={`grid w-full ${isMobile ? 'grid-cols-1 gap-1' : 'grid-cols-4'}`}>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="hashcat">Hashcat GPU</TabsTrigger>
           <TabsTrigger value="attacks">Attack Types</TabsTrigger>
+          <TabsTrigger value="lifespan">Lifespan</TabsTrigger>
         </TabsList>
         
         <TabsContent value="overview" className="space-y-3 mt-2">
@@ -270,6 +307,77 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
               </div>
             </div>
           ))}
+        </TabsContent>
+        
+        <TabsContent value="lifespan" className="space-y-3 mt-2">
+          <div className="bg-muted/30 p-4 rounded-md">
+            <div className="flex justify-between items-center mb-3">
+              <div className="flex items-center space-x-2">
+                <Calendar size={18} className="text-cyber-accent" />
+                <h4 className="text-sm font-medium">Recommended Password Lifespan</h4>
+              </div>
+              <span className={`text-sm font-bold ${lifespan.color}`}>
+                {lifespan.timespan}
+              </span>
+            </div>
+            
+            <p className="text-sm text-muted-foreground">{lifespan.description}</p>
+            
+            <div className="mt-4 pt-3 border-t border-border/30">
+              <h5 className="text-xs font-medium mb-2">Why passwords expire:</h5>
+              <ul className="text-xs space-y-2 text-muted-foreground">
+                <li className="flex items-start space-x-2">
+                  <span className="text-cyber-accent mt-0.5">•</span>
+                  <span>Technological advances make older passwords more vulnerable over time</span>
+                </li>
+                <li className="flex items-start space-x-2">
+                  <span className="text-cyber-accent mt-0.5">•</span>
+                  <span>Undiscovered data breaches might have exposed your password</span>
+                </li>
+                <li className="flex items-start space-x-2">
+                  <span className="text-cyber-accent mt-0.5">•</span>
+                  <span>Attackers gain more computing power and better cracking techniques</span>
+                </li>
+              </ul>
+            </div>
+            
+            <div className="mt-4 pt-3 border-t border-border/30">
+              <div className="flex space-x-2 items-center">
+                <Shield size={16} className="text-cyber-accent" />
+                <h5 className="text-xs font-medium">Password Aging Policy</h5>
+              </div>
+              <table className="w-full mt-2 text-xs">
+                <thead>
+                  <tr className="border-b border-border/30">
+                    <th className="text-left pb-1">Strength</th>
+                    <th className="text-right pb-1">Change After</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-border/10">
+                    <td className="py-1 text-strength-weak">Very Weak</td>
+                    <td className="text-right">Immediately</td>
+                  </tr>
+                  <tr className="border-b border-border/10">
+                    <td className="py-1 text-strength-weak">Weak</td>
+                    <td className="text-right">1 month</td>
+                  </tr>
+                  <tr className="border-b border-border/10">
+                    <td className="py-1 text-strength-medium">Medium</td>
+                    <td className="text-right">3 months</td>
+                  </tr>
+                  <tr className="border-b border-border/10">
+                    <td className="py-1 text-strength-good">Strong</td>
+                    <td className="text-right">6 months</td>
+                  </tr>
+                  <tr>
+                    <td className="py-1 text-strength-strong">Very Strong</td>
+                    <td className="text-right">12 months</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
