@@ -9,7 +9,7 @@ export default function TabsDemo() {
       title: "Overview",
       value: "overview",
       content: (
-        <div className="w-full overflow-hidden relative h-full rounded-xl p-6 text-lg font-medium text-white bg-gradient-to-br from-cyber-primary to-cyber-secondary">
+        <div className="w-full overflow-hidden relative h-full rounded-xl p-6 text-lg font-medium text-white bg-cyber-primary">
           <p>Overview of password strength</p>
           <div className="mt-4 text-sm font-normal">
             <p>Your password would take approximately:</p>
@@ -23,7 +23,7 @@ export default function TabsDemo() {
       title: "Hashcat",
       value: "hashcat",
       content: (
-        <div className="w-full overflow-hidden relative h-full rounded-xl p-6 text-lg font-medium text-white bg-gradient-to-br from-cyber-primary to-cyber-secondary">
+        <div className="w-full overflow-hidden relative h-full rounded-xl p-6 text-lg font-medium text-white bg-cyber-primary">
           <div className="flex items-center gap-2 mb-4">
             <Cpu size={20} />
             <p>Hashcat GPU Analysis</p>
@@ -40,7 +40,7 @@ export default function TabsDemo() {
       title: "Attack Types",
       value: "attacks",
       content: (
-        <div className="w-full overflow-hidden relative h-full rounded-xl p-6 text-lg font-medium text-white bg-gradient-to-br from-cyber-primary to-cyber-secondary">
+        <div className="w-full overflow-hidden relative h-full rounded-xl p-6 text-lg font-medium text-white bg-cyber-primary">
           <div className="flex items-center gap-2 mb-4">
             <Table size={20} />
             <p>Common Attack Vectors</p>
@@ -57,7 +57,7 @@ export default function TabsDemo() {
       title: "Lifespan",
       value: "lifespan",
       content: (
-        <div className="w-full overflow-hidden relative h-full rounded-xl p-6 text-lg font-medium text-white bg-gradient-to-br from-cyber-primary to-cyber-secondary">
+        <div className="w-full overflow-hidden relative h-full rounded-xl p-6 text-lg font-medium text-white bg-cyber-primary">
           <div className="flex items-center gap-2 mb-4">
             <Shield size={20} />
             <p>Password Lifespan</p>
@@ -73,7 +73,7 @@ export default function TabsDemo() {
   ];
 
   return (
-    <div className="h-[20rem] [perspective:1000px] relative flex flex-col max-w-3xl mx-auto w-full items-start justify-start my-10">
+    <div className="h-[20rem] relative flex flex-col max-w-3xl mx-auto w-full items-start justify-start my-10 border border-cyber-primary/20 rounded-xl shadow-lg">
       <AnimatedTabs tabs={tabs} />
     </div>
   );

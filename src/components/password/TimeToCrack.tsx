@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { Clock, Cpu, Server, Zap, Shield, Lock, Book, Table, Calendar } from 'lucide-react';
 import { useIsMobile } from "@/hooks/use-mobile";
 import { AnimatedTabs } from "@/components/ui/animated-tabs";
@@ -205,7 +204,7 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
       title: "Overview",
       value: "overview",
       content: (
-        <div className="bg-cyber-dark/80 rounded-xl p-4 space-y-3">
+        <div className="bg-cyber-dark rounded-xl p-4 space-y-3">
           <div className="bg-muted/30 p-3 rounded-md">
             <div className="flex justify-between">
               <p className="text-sm font-medium">Using a typical home computer:</p>
@@ -244,7 +243,7 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
       title: "Hashcat GPU",
       value: "hashcat",
       content: (
-        <div className="bg-cyber-dark/80 rounded-xl p-4 space-y-3">
+        <div className="bg-cyber-dark rounded-xl p-4 space-y-3">
           <div className="text-sm text-muted-foreground mb-2">
             <p>Real-world password cracking times with Hashcat on different GPUs:</p>
           </div>
@@ -277,7 +276,7 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
       title: "Attack Types",
       value: "attacks",
       content: (
-        <div className="bg-cyber-dark/80 rounded-xl p-4 space-y-3">
+        <div className="bg-cyber-dark rounded-xl p-4 space-y-3">
           {crackTime.hashcatResults?.attackModes.map((attack, index) => (
             <div key={index} className="bg-muted/30 p-3 rounded-md">
               <div className="flex justify-between items-center">
@@ -311,7 +310,7 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
       title: "Lifespan",
       value: "lifespan",
       content: (
-        <div className="bg-cyber-dark/80 rounded-xl p-4 space-y-3">
+        <div className="bg-cyber-dark rounded-xl p-4 space-y-3">
           <div className="bg-muted/30 p-4 rounded-md">
             <div className="flex justify-between items-center mb-3">
               <div className="flex items-center space-x-2">
@@ -395,7 +394,7 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
       {/* Visual representation */}
       {getTimeVisual()}
       
-      <div className="h-[360px] sm:h-[400px] md:h-[420px] relative">
+      <div className="h-[320px] sm:h-[360px] md:h-[380px] relative border border-cyber-primary/20 rounded-xl shadow-lg">
         <AnimatedTabs tabs={crackTimeTabs} />
       </div>
     </div>
