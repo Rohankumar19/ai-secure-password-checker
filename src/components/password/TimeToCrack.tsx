@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Clock, Cpu, Server, Zap, Shield, Lock, Book, Table, Calendar } from 'lucide-react';
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -73,6 +72,7 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
         color: "text-strength-medium"
       };
     } else if (strength < 85) {
+      return {
         timespan: "6 months",
         description: "Strong passwords still benefit from semi-annual changes.",
         color: "text-strength-good"
@@ -114,9 +114,6 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
       };
     }
   };
-
-  const attackType = getAttackTypeExplanation();
-  const lifespan = getLifespanRecommendation();
 
   // Visual indicator for time to crack based on strength
   const getTimeVisual = () => {
