@@ -87,8 +87,8 @@ const leetMap: Record<string, string> = {
   'l': '1'
 };
 
-// Special characters to use in password strengthening
-const specialChars = ['!', '@', '#', '$', '%', '&', '*', '?', '+', '=', '^', '~'];
+// Special characters to use in password strengthening - using more common ones for memorability
+const specialChars = ['!', '@', '#', '$', '%', '&', '*', '?'];
 
 export function generateStrongPassword(userPassword: string): string {
   if (!userPassword || userPassword.length < 3) {
@@ -102,33 +102,106 @@ export function generateStrongPassword(userPassword: string): string {
     const number = Math.floor(Math.random() * 999) + 1;
     const specialChar = specialChars[Math.floor(Math.random() * specialChars.length)];
     
-    // Capitalize first letter of each word
+    // Capitalize first letter of each word for better memorability
     const capitalizedWord1 = word1.charAt(0).toUpperCase() + word1.slice(1);
     const capitalizedWord2 = word2.charAt(0).toUpperCase() + word2.slice(1);
     
-    return `${capitalizedWord1}${number}${specialChar}${capitalizedWord2}`;
+    return `${capitalizedWord1}${specialChar}${number}${capitalizedWord2}`;
   }
   
   // If user provided a password, make it stronger while keeping it memorable
   let strengthened = userPassword;
   
-  // Step 1: Capitalize first letter if it's lowercase
-  if (/[a-z]/.test(strengthened[0])) {
-    strengthened = strengthened[0].toUpperCase() + strengthened.slice(1);
+  // Extract any words or patterns that might help with memorability
+  const potentialWords = userPassword.match(/[a-zA-Z]{3,}/g) || [];
+  const hasPattern = potentialWords.length > 0;
+  
+  // Step 1: If there's a word pattern, try to preserve it
+  if (hasPattern) {
+    // Capitalize the first letter of each word for better memorability
+    for (const word of potentialWords) {
+      if (word.length >= 3) {
+        const capitalized = word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        // Only replace the exact word to avoid changing substrings of other words
+        const regex = new RegExp(`\\b${word}\\b`, 'g');
+        strengthened = strengthened.replace(regex, capitalized);
+      }
+    }
+  } else {
+    // If no clear word pattern, capitalize first letter if it's lowercase
+    if (/[a-z]/.test(strengthened[0])) {
+      strengthened = strengthened[0].toUpperCase() + strengthened.slice(1);
+    }
   }
   
-  // Step 2: Add a memorable number (year or age)
-  const currentYear = new Date().getFullYear();
-  const memorableNumber = Math.random() > 0.5 ? currentYear : Math.floor(Math.random() * 99) + 1;
-  strengthened += memorableNumber.toString();
+  // Step 2: Replace some characters with special chars but only if pattern isn't clear
+  if (!hasPattern) {
+    // Simple leetspeak for character replacement, making it more memorable
+    const leetReplacements: Record<string, string> = {
+      'a': '@',
+      'e': '3',
+      'i': '!',
+      'o': '0',
+      's': '$'
+    };
+    
+    // Only replace one or two characters to keep it memorable
+    let replacements = 0;
+    let newStr = '';
+    
+    for (let i = 0; i < strengthened.length && replacements < 2; i++) {
+      const char = strengthened[i].toLowerCase();
+      if (leetReplacements[char] && Math.random() > 0.5 && replacements < 2) {
+        newStr += leetReplacements[char];
+        replacements++;
+      } else {
+        newStr += strengthened[i];
+      }
+    }
+    
+    if (replacements > 0) {
+      strengthened = newStr;
+    }
+  }
   
-  // Step 3: Add a memorable special character
-  const memorableSpecialChars = ['!', '@', '#', '$'];
-  const specialChar = memorableSpecialChars[Math.floor(Math.random() * memorableSpecialChars.length)];
-  strengthened += specialChar;
+  // Step 3: Add a memorable number (year or simple pattern)
+  // Check if password already has a number
+  if (!/\d/.test(strengthened)) {
+    const currentYear = new Date().getFullYear();
+    const memorableNumbers = [
+      currentYear.toString(), 
+      (currentYear % 100).toString(), 
+      "123", 
+      "777", 
+      "999", 
+      "111", 
+      "2023", 
+      "2024"
+    ];
+    const numberToAdd = memorableNumbers[Math.floor(Math.random() * memorableNumbers.length)];
+    strengthened += numberToAdd;
+  }
   
-  // Step 4: Ensure minimum length and add a memorable word if needed
-  if (strengthened.length < 12) {
+  // Step 4: Add a memorable special character if not present
+  if (!/[^A-Za-z0-9]/.test(strengthened)) {
+    const memorableSpecialChars = ['!', '@', '#', '$'];
+    const specialChar = memorableSpecialChars[Math.floor(Math.random() * memorableSpecialChars.length)];
+    
+    // Add the special character in a position that makes sense (after a word, before a number)
+    // This makes it more memorable by following patterns people expect
+    const numberIndex = strengthened.search(/\d/);
+    
+    if (numberIndex > 0 && numberIndex < strengthened.length - 1) {
+      // Insert before the first number
+      strengthened = strengthened.slice(0, numberIndex) + specialChar + strengthened.slice(numberIndex);
+    } else {
+      // Add to the end
+      strengthened += specialChar;
+    }
+  }
+  
+  // Step 5: Ensure minimum length of 10 characters
+  if (strengthened.length < 10) {
     const shortWords = ["now", "yes", "win", "top", "max", "pro"];
     const word = shortWords[Math.floor(Math.random() * shortWords.length)];
     strengthened += word.charAt(0).toUpperCase() + word.slice(1);
@@ -141,9 +214,9 @@ export function generateStrongPassword(userPassword: string): string {
   let hasSpecial = /[^A-Za-z0-9]/.test(strengthened);
   
   if (!hasUpper) strengthened = strengthened.charAt(0).toUpperCase() + strengthened.slice(1);
-  if (!hasLower) strengthened = strengthened.replace(/[A-Z]/, char => char.toLowerCase());
+  if (!hasLower && strengthened.length > 1) strengthened = strengthened.charAt(0) + strengthened.charAt(1).toLowerCase() + strengthened.slice(2);
   if (!hasNumber) strengthened += '7';
-  if (!hasSpecial) strengthened += '#';
+  if (!hasSpecial) strengthened += '!';
   
   return strengthened;
 }

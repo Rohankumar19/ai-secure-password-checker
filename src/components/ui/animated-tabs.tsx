@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from "react";
@@ -32,25 +33,10 @@ export const AnimatedTabs = ({
     }
     return propTabs[0];
   });
-  const [tabs, setTabs] = useState<Tab[]>(() => {
-    if (defaultTab) {
-      const defaultTabIndex = propTabs.findIndex(tab => tab.value === defaultTab);
-      if (defaultTabIndex !== -1) {
-        const newTabs = [...propTabs];
-        const selectedTab = newTabs.splice(defaultTabIndex, 1);
-        newTabs.unshift(selectedTab[0]);
-        return newTabs;
-      }
-    }
-    return propTabs;
-  });
+  const [tabs, setTabs] = useState<Tab[]>(propTabs);
 
   const moveSelectedTabToTop = (idx: number) => {
-    const newTabs = [...propTabs];
-    const selectedTab = newTabs.splice(idx, 1);
-    newTabs.unshift(selectedTab[0]);
-    setTabs(newTabs);
-    setActive(newTabs[0]);
+    setActive(propTabs[idx]);
   };
 
   const [hovering, setHovering] = useState(false);
@@ -92,7 +78,7 @@ export const AnimatedTabs = ({
       </div>
       <div className="flex-1 overflow-hidden rounded-b-xl bg-cyber-dark">
         <FadeInDiv
-          tabs={tabs}
+          tabs={propTabs}
           active={active}
           key={active.value}
           hovering={hovering}
@@ -115,27 +101,21 @@ export const FadeInDiv = ({
   active: Tab;
   hovering?: boolean;
 }) => {
-  const isActive = (tab: Tab) => {
-    return tab.value === tabs[0].value;
-  };
   return (
     <div className="relative w-full h-full overflow-hidden">
-      {tabs.map((tab, idx) => (
+      {tabs.map((tab) => (
         <motion.div
           key={tab.value}
           layoutId={tab.value}
-          style={{
-            scale: 1 - idx * 0.05,
-            top: hovering ? idx * -5 : 0,
-            zIndex: -idx,
-            opacity: idx < 3 ? 1 - idx * 0.1 : 0,
+          initial={{ opacity: 0 }}
+          animate={{ 
+            opacity: tab.value === active.value ? 1 : 0,
+            zIndex: tab.value === active.value ? 10 : -10,
           }}
-          animate={{
-            y: isActive(tab) ? [0, 5, 0] : 0,
-          }}
+          transition={{ duration: 0.25 }}
           className={cn("w-full h-full absolute top-0 left-0 p-3", className)}
         >
-          {tab.content}
+          {tab.value === active.value && tab.content}
         </motion.div>
       ))}
     </div>
