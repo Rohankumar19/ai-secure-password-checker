@@ -30,6 +30,7 @@ interface TimeToCrackProps {
 
 const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
   const [activeTab, setActiveTab] = useState("overview");
+  const [password, setPassword] = useState("");
   const isMobile = useIsMobile();
   
   // Information about different hashing methods
@@ -239,6 +240,12 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
   };
 
   const lifespan = getLifespanDetails();
+
+  // Function to handle password suggestion click
+  const handleSuggestionClick = (suggestedPassword: string) => {
+    setPassword(suggestedPassword);
+    // Recalculate strength here if needed
+  };
 
   return (
     <div className="space-y-4">
@@ -527,9 +534,9 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
           <h4 className="text-sm font-medium mb-2">Stronger Password Suggestions</h4>
           <ul className="space-y-2">
             {/* Example password suggestions */}
-            <li className="bg-muted/20 p-2 rounded text-sm">ExamplePassword1!</li>
-            <li className="bg-muted/20 p-2 rounded text-sm">ExamplePassword2@</li>
-            <li className="bg-muted/20 p-2 rounded text-sm">ExamplePassword3#</li>
+            <li className="bg-muted/20 p-2 rounded text-sm cursor-pointer" onClick={() => handleSuggestionClick('ExamplePassword1!')}>ExamplePassword1!</li>
+            <li className="bg-muted/20 p-2 rounded text-sm cursor-pointer" onClick={() => handleSuggestionClick('ExamplePassword2@')}>ExamplePassword2@</li>
+            <li className="bg-muted/20 p-2 rounded text-sm cursor-pointer" onClick={() => handleSuggestionClick('ExamplePassword3#')}>ExamplePassword3#</li>
           </ul>
         </div>
       )}
