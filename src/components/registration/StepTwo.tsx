@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -71,6 +70,9 @@ const StepTwo: React.FC<StepTwoProps> = ({ userData, onComplete, onBack }) => {
 
   const handleSuggestionSelect = (suggestedPassword: string) => {
     setPassword(suggestedPassword);
+    setStrength(100);
+    form.setValue("password", suggestedPassword);
+    form.trigger("password");
   };
 
   return (
