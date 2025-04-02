@@ -115,9 +115,6 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
     }
   };
 
-  const attackType = getAttackTypeExplanation();
-  const lifespan = getLifespanRecommendation();
-
   // Visual indicator for time to crack based on strength
   const getTimeVisual = () => {
     if (strength < 30) {
@@ -514,7 +511,9 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
       <div className="h-[420px] relative border border-cyber-primary/20 rounded-xl shadow-lg overflow-hidden">
         <AnimatedTabs 
           tabs={crackTimeTabs} 
-          defaultTab="overview"
+          defaultTab="overview" 
+          value={activeTab}
+          onValueChange={handleTabChange}
         />
       </div>
     </div>
