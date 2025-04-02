@@ -58,15 +58,12 @@ const Feedback: React.FC<FeedbackProps> = ({ password }) => {
     
     return (
       <div className="mt-2 text-xs text-muted-foreground">
-        <p>Example transformation:</p>
-        <div className="font-mono mt-1 space-y-1">
-          <div>Original: <span className="text-strength-weak">{password}</span></div>
-          <div>→ Leetspeak: <span className="text-strength-medium">{password.replace(/[aeiosblt]/gi, m => {
-            const replacement = { 'a': '4', 'e': '3', 'i': '1', 'o': '0', 's': '5', 'b': '8', 'l': '1', 't': '7' }[m.toLowerCase()];
-            return replacement || m;
-          })}</span></div>
-          <div>→ + Special chars: <span className="text-strength-good">{suggestedPassword}</span></div>
-        </div>
+        <p>Why this suggestion is memorable:</p>
+        <ul className="mt-1 space-y-1 list-disc pl-4">
+          <li>Maintains familiar elements from your password</li>
+          <li>Uses patterns that are easier to remember</li>
+          <li>Adds complexity in a structured way</li>
+        </ul>
       </div>
     );
   };
@@ -87,7 +84,7 @@ const Feedback: React.FC<FeedbackProps> = ({ password }) => {
       <div className="pt-3 border-t border-border/30">
         <div className="space-y-2">
           <h4 className="text-sm font-medium flex items-center">
-            <span>Suggested Strong Password</span>
+            <span>Suggested Memorable Password</span>
           </h4>
           <div className="flex items-center space-x-2">
             <div className="bg-strength-good/10 text-strength-good border border-strength-good/20 rounded px-2 py-1 text-sm font-mono flex-1 truncate">

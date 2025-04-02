@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Clock, Cpu, Server, Zap, Shield, Lock, Book, Table, Calendar } from 'lucide-react';
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -402,7 +403,7 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
       {/* Visual representation */}
       {getTimeVisual()}
       
-      <div className="h-[400px] relative border border-cyber-primary/20 rounded-xl shadow-lg overflow-hidden">
+      <div className="h-[420px] relative border border-cyber-primary/20 rounded-xl shadow-lg overflow-hidden">
         <AnimatedTabs tabs={crackTimeTabs} defaultTab="overview" />
       </div>
     </div>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { RefreshCw, Check, ArrowRight } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -60,20 +61,63 @@ const PasswordSuggestions: React.FC<PasswordSuggestionsProps> = ({
 
   const handleCancelSuggestion = () => {
     setShowConfirmation(false);
+    setSelectedIndex(null);
     setPendingSuggestion(null);
   };
 
-  // Display the transformation details
+  // Display the transformation details with memorability tips
   const getTransformationExample = (original: string, transformed: string) => {
     if (!original || original.length < 3) return null;
     
+    // Find similarities between original and transformed to highlight what makes it memorable
+    const similarityTips = [];
+    
+    // Check if starts with the same letter (capitalized in the suggestion)
+    if (original.charAt(0).toLowerCase() === transformed.charAt(0).toLowerCase()) {
+      similarityTips.push("Starts with same letter");
+    }
+    
+    // Check if contains parts of the original
+    const lowerOriginal = original.toLowerCase();
+    const lowerTransformed = transformed.toLowerCase();
+    
+    for (let i = 3; i <= Math.min(original.length, 8); i++) {
+      for (let j = 0; j <= original.length - i; j++) {
+        const chunk = lowerOriginal.slice(j, j + i);
+        if (lowerTransformed.includes(chunk)) {
+          similarityTips.push(`Contains familiar pattern "${chunk}"`);
+          j = original.length; // Break outer loop
+          break;
+        }
+      }
+      
+      if (similarityTips.length > 1) break; // Don't add too many tips
+    }
+    
+    // Add generic tip if no specific similarities found
+    if (similarityTips.length === 0) {
+      similarityTips.push("Structure makes it easier to remember");
+    }
+    
     return (
-      <div className="space-y-1 text-xs mt-1">
-        <div><span className="text-muted-foreground">Original:</span> {original}</div>
+      <div className="space-y-2 text-xs mt-2">
+        <div className="flex items-center">
+          <span className="text-muted-foreground mr-1">Original:</span> 
+          <span className="font-mono">{original}</span>
+        </div>
         <div className="flex items-center">
           <span className="text-muted-foreground mr-1">Suggested:</span> 
           <ArrowRight size={10} className="text-muted-foreground mx-1" />
           <span className="font-mono text-strength-good">{transformed}</span>
+        </div>
+        <div className="mt-1">
+          <span className="text-muted-foreground">Why it's memorable:</span>
+          <ul className="pl-4 mt-1 list-disc space-y-1">
+            {similarityTips.map((tip, i) => (
+              <li key={i}>{tip}</li>
+            ))}
+            <li>Follows a consistent pattern</li>
+          </ul>
         </div>
       </div>
     );
@@ -96,7 +140,7 @@ const PasswordSuggestions: React.FC<PasswordSuggestionsProps> = ({
       <p className="text-sm text-muted-foreground">
         {strength >= 80 
           ? "Your password is already strong, but here are some even stronger alternatives:" 
-          : "Try one of these stronger passwords based on your input:"}
+          : "Try one of these stronger yet memorable passwords based on your input:"}
       </p>
       
       <div className="space-y-2">
@@ -149,7 +193,7 @@ const PasswordSuggestions: React.FC<PasswordSuggestionsProps> = ({
       
       <div className="text-sm mt-2">
         <p className="text-muted-foreground text-xs">
-          These suggestions follow best practices for secure passwords while maintaining some familiarity with your original input.
+          These suggestions follow best practices for secure passwords while maintaining some familiarity with your original input to help you remember them.
         </p>
       </div>
     </div>
