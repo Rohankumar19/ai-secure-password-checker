@@ -271,8 +271,7 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
               border border-cyber-accent/5
             `}
           >
-            <div className="flex items-center justify-center space-x-1">
-              <Clock size={12} className="text-cyber-accent" />
+            <div className="flex items-center justify-center">
               <span className="text-xs font-medium">Overview</span>
             </div>
           </TabsTrigger>
@@ -295,8 +294,7 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
               border border-cyber-accent/5
             `}
           >
-            <div className="flex items-center justify-center space-x-1">
-              <Cpu size={12} className="text-cyber-accent" />
+            <div className="flex items-center justify-center">
               <span className="text-xs font-medium">Hashcat GPU</span>
             </div>
           </TabsTrigger>
@@ -319,8 +317,7 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
               border border-cyber-accent/5
             `}
           >
-            <div className="flex items-center justify-center space-x-1">
-              <Shield size={12} className="text-cyber-accent" />
+            <div className="flex items-center justify-center">
               <span className="text-xs font-medium">Attack Types</span>
             </div>
           </TabsTrigger>
@@ -343,8 +340,7 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
               border border-cyber-accent/5
             `}
           >
-            <div className="flex items-center justify-center space-x-1">
-              <Calendar size={12} className="text-cyber-accent" />
+            <div className="flex items-center justify-center">
               <span className="text-xs font-medium">Lifespan</span>
             </div>
           </TabsTrigger>
@@ -524,6 +520,19 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
           </TabsContent>
         </div>
       </Tabs>
+
+      {/* Hide password suggestions if strength is 100% */}
+      {strength < 100 && strength > 0 && (
+        <div className="mt-4">
+          <h4 className="text-sm font-medium mb-2">Stronger Password Suggestions</h4>
+          <ul className="space-y-2">
+            {/* Example password suggestions */}
+            <li className="bg-muted/20 p-2 rounded text-sm">ExamplePassword1!</li>
+            <li className="bg-muted/20 p-2 rounded text-sm">ExamplePassword2@</li>
+            <li className="bg-muted/20 p-2 rounded text-sm">ExamplePassword3#</li>
+          </ul>
+        </div>
+      )}
     </div>
   );
 };
