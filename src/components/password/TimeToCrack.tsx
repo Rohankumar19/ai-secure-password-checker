@@ -167,12 +167,42 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
     if (isNaN(seconds) || !isFinite(seconds)) return "Infinite";
     if (seconds < 1) return "Instantly";
     
-    if (seconds < 60) return `${Math.round(seconds)} seconds`;
-    if (seconds < 3600) return `${Math.round(seconds / 60)} minutes`;
-    if (seconds < 86400) return `${Math.round(seconds / 3600)} hours`;
-    if (seconds < 31536000) return `${Math.round(seconds / 86400)} days`;
-    if (seconds < 31536000 * 100) return `${Math.round(seconds / 31536000)} years`;
-    if (seconds < 31536000 * 1000) return `${Math.round(seconds / 31536000)} years`;
+    // More granular time formatting
+    if (seconds < 60) {
+      return `${Math.round(seconds)} seconds`;
+    }
+    if (seconds < 3600) {
+      const minutes = Math.round(seconds / 60);
+      if (minutes < 60) return `${minutes} minutes`;
+      const hours = Math.floor(minutes / 60);
+      const remainingMinutes = minutes % 60;
+      return remainingMinutes > 0 ? `${hours} hours ${remainingMinutes} minutes` : `${hours} hours`;
+    }
+    if (seconds < 86400) {
+      const hours = Math.round(seconds / 3600);
+      if (hours < 24) return `${hours} hours`;
+      const days = Math.floor(hours / 24);
+      const remainingHours = hours % 24;
+      return remainingHours > 0 ? `${days} days ${remainingHours} hours` : `${days} days`;
+    }
+    if (seconds < 31536000) {
+      const days = Math.round(seconds / 86400);
+      if (days < 30) return `${days} days`;
+      const months = Math.floor(days / 30);
+      const remainingDays = days % 30;
+      return remainingDays > 0 ? `${months} months ${remainingDays} days` : `${months} months`;
+    }
+    if (seconds < 31536000 * 100) {
+      const years = Math.round(seconds / 31536000);
+      if (years < 100) return `${years} years`;
+      const centuries = Math.floor(years / 100);
+      const remainingYears = years % 100;
+      return remainingYears > 0 ? `${centuries} centuries ${remainingYears} years` : `${centuries} centuries`;
+    }
+    if (seconds < 31536000 * 1000) {
+      const centuries = Math.round(seconds / (31536000 * 100));
+      return `${centuries} centuries`;
+    }
     return "Millions of years";
   };
 
@@ -187,14 +217,50 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
     }
   };
 
+  // Format crack time with appropriate units and handling for very short times
+  const formatCrackTime = (timeString: string) => {
+    if (!timeString) return "Instantly";
+    
+    // Handle numeric values
+    const numericMatch = timeString.match(/(\d+)/);
+    if (numericMatch) {
+      const seconds = parseInt(numericMatch[1]);
+      if (seconds === 0) return "Instantly";
+      if (seconds < 60) return `${seconds} seconds`;
+      return formatHashcatTime(seconds);
+    }
+    
+    // Handle specific text cases
+    const lowerTime = timeString.toLowerCase();
+    if (lowerTime.includes("0 seconds") || lowerTime.includes("instant")) return "Instantly";
+    if (lowerTime.includes("less than")) return "Less than a minute";
+    
+    // Handle existing formatted times
+    if (lowerTime.includes("seconds")) return timeString;
+    if (lowerTime.includes("minutes")) return timeString;
+    if (lowerTime.includes("hours")) return timeString;
+    if (lowerTime.includes("days")) return timeString;
+    if (lowerTime.includes("months")) return timeString;
+    if (lowerTime.includes("years")) return timeString;
+    if (lowerTime.includes("centuries")) return timeString;
+    if (lowerTime.includes("millions")) return timeString;
+    
+    return timeString;
+  };
+
   // Determine color based on time to crack
   const getTimeColor = (timeString: string) => {
-    if (timeString.includes("Instantly") || timeString.includes("seconds") || timeString.includes("minutes"))
+    const formattedTime = formatCrackTime(timeString);
+    const lowerTime = formattedTime.toLowerCase();
+    
+    if (lowerTime === "instantly" || lowerTime.includes("seconds") || lowerTime.includes("less than"))
       return "text-strength-weak";
-    if (timeString.includes("hours") || timeString.includes("days"))
+    if (lowerTime.includes("minutes") || lowerTime.includes("hours"))
       return "text-strength-medium";
-    if (timeString.includes("years") && !timeString.includes("Millions"))
+    if (lowerTime.includes("days") || lowerTime.includes("months"))
       return "text-strength-good";
+    if (lowerTime.includes("years") || lowerTime.includes("centuries"))
+      return "text-strength-strong";
     return "text-strength-strong";
   };
 
@@ -211,7 +277,9 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
                 <p className="text-sm font-medium">Using a typical home computer:</p>
                 <Clock size={16} className="text-cyber-accent" />
               </div>
-              <p className={`text-lg font-bold ${getTimeColor(crackTime.regular)}`}>{crackTime.regular}</p>
+              <p className={`text-lg font-bold ${getTimeColor(crackTime.regular)}`}>
+                {formatCrackTime(crackTime.regular)}
+              </p>
             </div>
             
             <div className="bg-muted/30 p-3 rounded-md">
@@ -219,7 +287,9 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
                 <p className="text-sm font-medium">Using a powerful GPU cluster:</p>
                 <Cpu size={16} className="text-cyber-accent" />
               </div>
-              <p className={`text-lg font-bold ${getTimeColor(crackTime.fastComputer)}`}>{crackTime.fastComputer}</p>
+              <p className={`text-lg font-bold ${getTimeColor(crackTime.fastComputer)}`}>
+                {formatCrackTime(crackTime.fastComputer)}
+              </p>
             </div>
             
             <div className="bg-muted/30 p-3 rounded-md">
@@ -227,7 +297,9 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
                 <p className="text-sm font-medium">Using a supercomputer:</p>
                 <Server size={16} className="text-cyber-accent" />
               </div>
-              <p className={`text-lg font-bold ${getTimeColor(crackTime.superComputer)}`}>{crackTime.superComputer}</p>
+              <p className={`text-lg font-bold ${getTimeColor(crackTime.superComputer)}`}>
+                {formatCrackTime(crackTime.superComputer)}
+              </p>
             </div>
             
             <div className="pt-2 border-t border-border/30">
