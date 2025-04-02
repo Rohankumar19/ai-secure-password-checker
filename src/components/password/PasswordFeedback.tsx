@@ -23,6 +23,9 @@ const PasswordFeedback: React.FC<PasswordFeedbackProps> = ({
 }) => {
   const crackTime = calculateTimeToCrack(password, strength);
 
+  // Don't show suggestions if password is perfect
+  const shouldShowSuggestions = strength < 99;
+
   return (
     <div className="pt-2 space-y-6">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -41,15 +44,17 @@ const PasswordFeedback: React.FC<PasswordFeedbackProps> = ({
         </div>
       </div>
       
-      {/* Suggestions Section */}
-      <div className="cyber-card p-4 animate-fade-in">
-        <PasswordSuggestions 
-          password={password} 
-          strength={strength}
-          userData={userData}
-          onSelect={onSuggestionSelect}
-        />
-      </div>
+      {/* Suggestions Section - Only show if not perfect */}
+      {shouldShowSuggestions && (
+        <div className="cyber-card p-4 animate-fade-in">
+          <PasswordSuggestions 
+            password={password} 
+            strength={strength}
+            userData={userData}
+            onSelect={onSuggestionSelect}
+          />
+        </div>
+      )}
     </div>
   );
 };

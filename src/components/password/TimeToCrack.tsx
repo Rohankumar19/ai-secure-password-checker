@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Clock, Cpu, Server, Zap, Shield, Lock, Book, Table, Calendar } from 'lucide-react';
 import { useIsMobile } from "@/hooks/use-mobile";
 import { AnimatedTabs } from "@/components/ui/animated-tabs";
@@ -31,6 +31,7 @@ interface TimeToCrackProps {
 
 const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
   const isMobile = useIsMobile();
+  const [activeTab, setActiveTab] = useState("overview");
   
   // Information about different hashing methods
   const hashingMethods = [
@@ -72,15 +73,20 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
         color: "text-strength-medium"
       };
     } else if (strength < 85) {
-      return {
         timespan: "6 months",
         description: "Strong passwords still benefit from semi-annual changes.",
         color: "text-strength-good"
       };
-    } else {
+    } else if (strength < 95) {
       return {
         timespan: "12 months",
         description: "Very strong passwords can last longer, but annual changes are still good practice.",
+        color: "text-strength-strong"
+      };
+    } else {
+      return {
+        timespan: "24 months",
+        description: "Extremely strong passwords can last longer, but regular changes are still recommended.",
         color: "text-strength-strong"
       };
     }
@@ -157,7 +163,7 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
             <Lock size={16} className="text-strength-strong" />
             <Shield size={16} className="text-strength-strong" />
           </div>
-          <p className="ml-2 text-xs text-strength-strong">Would take centuries</p>
+          <p className="ml-2 text-xs text-strength-strong">Would take centuries or more</p>
         </div>
       );
     }
@@ -165,7 +171,7 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
 
   // Format hashcat time results with appropriate units
   const formatHashcatTime = (seconds: number) => {
-    if (isNaN(seconds) || !isFinite(seconds)) return "Infinite";
+    if (isNaN(seconds) || !isFinite(seconds) || seconds === Infinity) return "Undefinable";
     if (seconds < 1) return "Instantly";
     
     // More granular time formatting
@@ -196,15 +202,16 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
     if (seconds < 31536000 * 100) {
       const years = Math.round(seconds / 31536000);
       if (years < 100) return `${years} years`;
-      const centuries = Math.floor(years / 100);
-      const remainingYears = years % 100;
-      return remainingYears > 0 ? `${centuries} centuries ${remainingYears} years` : `${centuries} centuries`;
+      return `${years} years`;
     }
     if (seconds < 31536000 * 1000) {
       const centuries = Math.round(seconds / (31536000 * 100));
       return `${centuries} centuries`;
     }
-    return "Millions of years";
+    if (seconds < 31536000 * 1000000) {
+      return "Millions of years";
+    }
+    return "Billions of years";
   };
 
   // Get icon for attack mode
@@ -236,6 +243,12 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
     if (lowerTime.includes("0 seconds") || lowerTime.includes("instant")) return "Instantly";
     if (lowerTime.includes("less than")) return "Less than a minute";
     
+    // Dictionary attacks might be ineffective against strong passwords
+    if (lowerTime.includes("undefined") || lowerTime === "undefined") {
+      if (strength > 95) return "Undefinable (Not Crackable)";
+      return "Undefinable";
+    }
+    
     // Handle existing formatted times
     if (lowerTime.includes("seconds")) return timeString;
     if (lowerTime.includes("minutes")) return timeString;
@@ -245,6 +258,7 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
     if (lowerTime.includes("years")) return timeString;
     if (lowerTime.includes("centuries")) return timeString;
     if (lowerTime.includes("millions")) return timeString;
+    if (lowerTime.includes("billions")) return timeString;
     
     return timeString;
   };
@@ -254,15 +268,25 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
     const formattedTime = formatCrackTime(timeString);
     const lowerTime = formattedTime.toLowerCase();
     
+    if (lowerTime.includes("undefinable")) 
+      return "text-strength-strong";
     if (lowerTime === "instantly" || lowerTime.includes("seconds") || lowerTime.includes("less than"))
       return "text-strength-weak";
     if (lowerTime.includes("minutes") || lowerTime.includes("hours"))
       return "text-strength-medium";
     if (lowerTime.includes("days") || lowerTime.includes("months"))
       return "text-strength-good";
-    if (lowerTime.includes("years") || lowerTime.includes("centuries"))
+    if (lowerTime.includes("years") || lowerTime.includes("centuries") || lowerTime.includes("billions"))
       return "text-strength-strong";
     return "text-strength-strong";
+  };
+
+  // Custom handler for tab changes to prevent form submission
+  const handleTabChange = (tabValue: string) => {
+    setActiveTab(tabValue);
+    // Prevent event propagation to avoid triggering form submission
+    event?.stopPropagation();
+    event?.preventDefault();
   };
 
   // Prepare tabs for the animated tabs component
@@ -355,32 +379,40 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
       content: (
         <div className="h-full bg-cyber-dark rounded-xl">
           <div className="p-3 space-y-3 overflow-y-auto max-h-[280px]">
-            {crackTime.hashcatResults?.attackModes.map((attack, index) => (
-              <div key={index} className="bg-muted/30 p-3 rounded-md">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center space-x-2">
-                    {getAttackIcon(attack.icon)}
-                    <p className="font-medium">{attack.name}</p>
+            {crackTime.hashcatResults?.attackModes.map((attack, index) => {
+              // For dictionary attacks on strong passwords, show "Undefinable"
+              let estimatedTime = attack.estimatedTime;
+              if (attack.name === "Dictionary Attack" && strength > 90) {
+                estimatedTime = "Undefinable (Not Crackable)";
+              }
+              
+              return (
+                <div key={index} className="bg-muted/30 p-3 rounded-md">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center space-x-2">
+                      {getAttackIcon(attack.icon)}
+                      <p className="font-medium">{attack.name}</p>
+                    </div>
+                    <span className={`text-xs px-2 py-0.5 rounded ${
+                      attack.effectiveness === "Low" ? "bg-green-500/20 text-green-500" : 
+                      attack.effectiveness === "Medium" ? "bg-yellow-500/20 text-yellow-500" : 
+                      "bg-red-500/20 text-red-500"
+                    }`}>
+                      {attack.effectiveness}
+                    </span>
                   </div>
-                  <span className={`text-xs px-2 py-0.5 rounded ${
-                    attack.effectiveness === "Low" ? "bg-green-500/20 text-green-500" : 
-                    attack.effectiveness === "Medium" ? "bg-yellow-500/20 text-yellow-500" : 
-                    "bg-red-500/20 text-red-500"
-                  }`}>
-                    {attack.effectiveness}
-                  </span>
+                  
+                  <p className="text-sm text-muted-foreground mt-1">{attack.description}</p>
+                  
+                  <div className="flex justify-between items-center mt-2 pt-1 border-t border-border/20">
+                    <span className="text-sm">Est. Time:</span>
+                    <span className={`text-sm font-medium ${getTimeColor(estimatedTime)}`}>
+                      {formatCrackTime(estimatedTime)}
+                    </span>
+                  </div>
                 </div>
-                
-                <p className="text-sm text-muted-foreground mt-1">{attack.description}</p>
-                
-                <div className="flex justify-between items-center mt-2 pt-1 border-t border-border/20">
-                  <span className="text-sm">Est. Time:</span>
-                  <span className={`text-sm font-medium ${getTimeColor(attack.estimatedTime)}`}>
-                    {attack.estimatedTime}
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       ),
@@ -451,9 +483,13 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
                       <td className="py-1 text-strength-good">Strong</td>
                       <td className="text-right">6 months</td>
                     </tr>
-                    <tr>
+                    <tr className="border-b border-border/10">
                       <td className="py-1 text-strength-strong">Very Strong</td>
                       <td className="text-right">12 months</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1 text-strength-strong">Perfect</td>
+                      <td className="text-right">24 months</td>
                     </tr>
                   </tbody>
                 </table>
@@ -476,7 +512,12 @@ const TimeToCrack: React.FC<TimeToCrackProps> = ({ crackTime, strength }) => {
       {getTimeVisual()}
       
       <div className="h-[420px] relative border border-cyber-primary/20 rounded-xl shadow-lg overflow-hidden">
-        <AnimatedTabs tabs={crackTimeTabs} defaultTab="overview" />
+        <AnimatedTabs 
+          tabs={crackTimeTabs} 
+          defaultTab="overview" 
+          value={activeTab}
+          onValueChange={handleTabChange}
+        />
       </div>
     </div>
   );

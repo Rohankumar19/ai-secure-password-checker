@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Check, ArrowRight } from 'lucide-react';
+import { RefreshCw, Check, ArrowRight, AlertTriangle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { generateStrongPassword } from '@/utils/passwordUtils';
 import { UserData } from '@/components/registration/RegistrationFlow';
@@ -22,24 +22,82 @@ const PasswordSuggestions: React.FC<PasswordSuggestionsProps> = ({
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [pendingSuggestion, setPendingSuggestion] = useState<string | null>(null);
+  const [suggestionStrengths, setSuggestionStrengths] = useState<number[]>([]);
 
-  // Generate suggestions when password changes
+  // Don't show suggestions if the password is already perfect
+  const shouldShowSuggestions = strength < 99;
+
+  // Generate suggestions when password changes or when explicitly requested
   useEffect(() => {
-    if (password) {
+    if (password && shouldShowSuggestions) {
       generateSuggestions();
     }
-  }, [password]);
+  }, [password, shouldShowSuggestions]);
 
   const generateSuggestions = () => {
+    if (!shouldShowSuggestions) {
+      setSuggestions([]);
+      setSuggestionStrengths([]);
+      return;
+    }
+
     const newSuggestions = [];
+    const newStrengths = [];
     
-    // Generate 3 different suggestions
-    for (let i = 0; i < 3; i++) {
+    // Generate suggestions until we have 3 that are strong enough
+    let attempts = 0;
+    let count = 0;
+    
+    while (count < 3 && attempts < 10) {
+      attempts++;
       const suggestion = generateStrongPassword(password);
-      newSuggestions.push(suggestion);
+      
+      // Calculate the strength of this suggestion
+      const calculateStrength = (pwd: string): number => {
+        let score = 0;
+        
+        // Length (up to 30 points)
+        const lengthScore = Math.min(30, pwd.length * 2);
+        score += lengthScore;
+        
+        // Character variety (up to 40 points)
+        if (/[A-Z]/.test(pwd)) score += 10; // Uppercase
+        if (/[a-z]/.test(pwd)) score += 10; // Lowercase
+        if (/[0-9]/.test(pwd)) score += 10; // Numbers
+        if (/[^A-Za-z0-9]/.test(pwd)) score += 10; // Special chars
+        
+        // Complexity patterns
+        const hasVariety = (/[A-Z]/.test(pwd) ? 1 : 0) +
+                           (/[a-z]/.test(pwd) ? 1 : 0) +
+                           (/[0-9]/.test(pwd) ? 1 : 0) +
+                           (/[^A-Za-z0-9]/.test(pwd) ? 1 : 0);
+        
+        score += hasVariety * 7.5; // Up to 30
+        
+        // Length bonus for very long passwords
+        if (pwd.length > 12) {
+          score += Math.min(10, (pwd.length - 12));
+        }
+        
+        // Return bounded score
+        return Math.max(0, Math.min(100, Math.round(score)));
+      };
+      
+      const suggestionStrength = calculateStrength(suggestion);
+      
+      // Only add if the suggestion is strong enough (score > 95)
+      if (suggestionStrength > 95) {
+        // Check if we already have this suggestion
+        if (!newSuggestions.includes(suggestion)) {
+          newSuggestions.push(suggestion);
+          newStrengths.push(suggestionStrength);
+          count++;
+        }
+      }
     }
     
     setSuggestions(newSuggestions);
+    setSuggestionStrengths(newStrengths);
     setSelectedIndex(null);
     setShowConfirmation(false);
     setPendingSuggestion(null);
@@ -65,63 +123,79 @@ const PasswordSuggestions: React.FC<PasswordSuggestionsProps> = ({
     setPendingSuggestion(null);
   };
 
-  // Display the transformation details with memorability tips
-  const getTransformationExample = (original: string, transformed: string) => {
+  // Display tips for why the password is memorable and strong
+  const getPasswordAnalysis = (original: string, transformed: string, strength: number) => {
     if (!original || original.length < 3) return null;
     
-    // Find similarities between original and transformed to highlight what makes it memorable
-    const similarityTips = [];
+    // Analyze how the password was transformed
+    const analysis = [];
     
-    // Check if starts with the same letter (capitalized in the suggestion)
-    if (original.charAt(0).toLowerCase() === transformed.charAt(0).toLowerCase()) {
-      similarityTips.push("Starts with same letter");
+    // Check for leetspeak
+    if (/[0-9@$!%*?&#]/.test(transformed)) {
+      analysis.push("Uses leetspeak substitutions for better security");
     }
     
-    // Check if contains parts of the original
-    const lowerOriginal = original.toLowerCase();
-    const lowerTransformed = transformed.toLowerCase();
-    
-    for (let i = 3; i <= Math.min(original.length, 8); i++) {
-      for (let j = 0; j <= original.length - i; j++) {
-        const chunk = lowerOriginal.slice(j, j + i);
-        if (lowerTransformed.includes(chunk)) {
-          similarityTips.push(`Contains familiar pattern "${chunk}"`);
-          j = original.length; // Break outer loop
-          break;
-        }
-      }
-      
-      if (similarityTips.length > 1) break; // Don't add too many tips
+    // Check for special characters
+    if (/[^A-Za-z0-9]/.test(transformed)) {
+      analysis.push("Contains special characters in unpredictable positions");
     }
     
-    // Add generic tip if no specific similarities found
-    if (similarityTips.length === 0) {
-      similarityTips.push("Structure makes it easier to remember");
+    // Check for mixed case
+    if (/[A-Z]/.test(transformed) && /[a-z]/.test(transformed)) {
+      analysis.push("Uses mixed case for increased complexity");
     }
+    
+    // Check for sufficient length
+    if (transformed.length >= 12) {
+      analysis.push("Has good length (12+ characters)");
+    }
+    
+    // Check for added suffix
+    if (transformed.length > original.length + 2) {
+      analysis.push("Includes unique suffix for added security");
+    }
+    
+    // Mention pattern/structure for memorability
+    analysis.push("Structure makes it easier to remember while being secure");
     
     return (
       <div className="space-y-2 text-xs mt-2">
-        <div className="flex items-center">
-          <span className="text-muted-foreground mr-1">Original:</span> 
-          <span className="font-mono">{original}</span>
+        <div className="flex items-center justify-between">
+          <span className="font-medium">Password Strength:</span>
+          <span className="font-medium text-strength-good">{strength}/100</span>
         </div>
-        <div className="flex items-center">
-          <span className="text-muted-foreground mr-1">Suggested:</span> 
-          <ArrowRight size={10} className="text-muted-foreground mx-1" />
-          <span className="font-mono text-strength-good">{transformed}</span>
-        </div>
+        
         <div className="mt-1">
-          <span className="text-muted-foreground">Why it's memorable:</span>
+          <span className="text-muted-foreground">Why it's strong & memorable:</span>
           <ul className="pl-4 mt-1 list-disc space-y-1">
-            {similarityTips.map((tip, i) => (
-              <li key={i}>{tip}</li>
+            {analysis.map((point, i) => (
+              <li key={i}>{point}</li>
             ))}
-            <li>Follows a consistent pattern</li>
           </ul>
+        </div>
+        
+        <div className="mt-2 flex items-center text-muted-foreground">
+          <AlertTriangle size={12} className="mr-1" /> 
+          <span>Remember to store this securely after creation</span>
         </div>
       </div>
     );
   };
+
+  // If we shouldn't show suggestions, return null
+  if (!shouldShowSuggestions) {
+    return (
+      <div className="p-3 rounded-md bg-strength-good/10 border border-strength-good/20">
+        <div className="flex items-center space-x-2">
+          <Check size={16} className="text-strength-good" />
+          <h3 className="text-sm font-medium">Perfect Password</h3>
+        </div>
+        <p className="text-sm text-muted-foreground mt-1">
+          Your password is extremely strong and no further suggestions are needed.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -139,8 +213,8 @@ const PasswordSuggestions: React.FC<PasswordSuggestionsProps> = ({
       
       <p className="text-sm text-muted-foreground">
         {strength >= 80 
-          ? "Your password is already strong, but here are some even stronger alternatives:" 
-          : "Try one of these stronger yet memorable passwords based on your input:"}
+          ? "Your password is already good, but here are even stronger alternatives:" 
+          : "Try one of these stronger yet memorable passwords:"}
       </p>
       
       <div className="space-y-2">
@@ -161,7 +235,7 @@ const PasswordSuggestions: React.FC<PasswordSuggestionsProps> = ({
                 <Check size={18} className="text-strength-good flex-shrink-0" />
               )}
             </div>
-            {selectedIndex === index && getTransformationExample(password, suggestion)}
+            {selectedIndex === index && getPasswordAnalysis(password, suggestion, suggestionStrengths[index] || 95)}
           </div>
         ))}
       </div>
@@ -193,7 +267,7 @@ const PasswordSuggestions: React.FC<PasswordSuggestionsProps> = ({
       
       <div className="text-sm mt-2">
         <p className="text-muted-foreground text-xs">
-          These suggestions follow best practices for secure passwords while maintaining some familiarity with your original input to help you remember them.
+          These suggestions use leetspeak, random symbol placement, and secure patterns while maintaining some memorability based on your original input.
         </p>
       </div>
     </div>

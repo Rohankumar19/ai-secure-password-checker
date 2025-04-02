@@ -75,20 +75,25 @@ export function calculatePasswordStrength(password: string): number {
 }
 
 // Leetspeak conversion map
-const leetMap: Record<string, string> = {
-  'a': '4',
-  'e': '3',
-  'i': '1',
-  'o': '0',
-  's': '5',
-  't': '7',
-  'b': '8',
-  'g': '9',
-  'l': '1'
+const leetMap: Record<string, string[]> = {
+  'a': ['4', '@'],
+  'e': ['3'],
+  'i': ['1', '!'],
+  'o': ['0'],
+  's': ['5', '$'],
+  't': ['7', '+'],
+  'b': ['8'],
+  'g': ['9'],
+  'l': ['1', '|'],
+  'c': ['(', '{', '['],
+  'z': ['2']
 };
 
-// Special characters to use in password strengthening - using more common ones for memorability
-const specialChars = ['!', '@', '#', '$', '%', '&', '*', '?'];
+// Special characters to use in password strengthening
+const specialChars = ['!', '@', '#', '$', '%', '&', '*', '?', '~', '^', '-', '_', '+', '=', '<', '>', '|'];
+
+// Random suffixes to add to passwords for extra security
+const randomSuffixes = ['Sec', 'X', 'Z', 'Qz', 'K9', 'J7', 'M8', 'W3b', 'N3t', 'Pr0', 'V1p'];
 
 export function generateStrongPassword(userPassword: string): string {
   if (!userPassword || userPassword.length < 3) {
@@ -102,109 +107,82 @@ export function generateStrongPassword(userPassword: string): string {
     const number = Math.floor(Math.random() * 999) + 1;
     const specialChar = specialChars[Math.floor(Math.random() * specialChars.length)];
     
-    // Capitalize first letter of each word for better memorability
-    const capitalizedWord1 = word1.charAt(0).toUpperCase() + word1.slice(1);
-    const capitalizedWord2 = word2.charAt(0).toUpperCase() + word2.slice(1);
+    // Apply leetspeak to parts of the words
+    const leetWord1 = applyLeetspeak(word1, 0.7);
+    const leetWord2 = applyLeetspeak(word2, 0.5);
     
-    return `${capitalizedWord1}${specialChar}${number}${capitalizedWord2}`;
+    // Randomize capitalization
+    const capitalizedWord1 = randomizeCapitalization(leetWord1);
+    const capitalizedWord2 = randomizeCapitalization(leetWord2);
+    
+    // Add a random suffix
+    const suffix = randomSuffixes[Math.floor(Math.random() * randomSuffixes.length)];
+    
+    // Randomly place special characters
+    const specialCharPos = Math.floor(Math.random() * 3);
+    if (specialCharPos === 0) {
+      return `${specialChar}${capitalizedWord1}${number}${capitalizedWord2}${suffix}`;
+    } else if (specialCharPos === 1) {
+      return `${capitalizedWord1}${specialChar}${number}${capitalizedWord2}${suffix}`;
+    } else {
+      return `${capitalizedWord1}${number}${specialChar}${capitalizedWord2}${suffix}`;
+    }
   }
   
-  // If user provided a password, make it stronger while keeping it memorable
+  // If user provided a password, make it stronger while keeping it somewhat familiar
   let strengthened = userPassword;
   
   // Extract any words or patterns that might help with memorability
   const potentialWords = userPassword.match(/[a-zA-Z]{3,}/g) || [];
   const hasPattern = potentialWords.length > 0;
   
-  // Step 1: If there's a word pattern, try to preserve it
-  if (hasPattern) {
-    // Capitalize the first letter of each word for better memorability
-    for (const word of potentialWords) {
-      if (word.length >= 3) {
-        const capitalized = word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-        // Only replace the exact word to avoid changing substrings of other words
-        const regex = new RegExp(`\\b${word}\\b`, 'g');
-        strengthened = strengthened.replace(regex, capitalized);
-      }
-    }
-  } else {
-    // If no clear word pattern, capitalize first letter if it's lowercase
-    if (/[a-z]/.test(strengthened[0])) {
-      strengthened = strengthened[0].toUpperCase() + strengthened.slice(1);
-    }
-  }
+  // Step 1: Apply leetspeak transformations to make it stronger but still recognizable
+  let leetTransformed = '';
+  const leetProbability = 0.6; // 60% chance of applying leetspeak to eligible chars
   
-  // Step 2: Replace some characters with special chars but only if pattern isn't clear
-  if (!hasPattern) {
-    // Simple leetspeak for character replacement, making it more memorable
-    const leetReplacements: Record<string, string> = {
-      'a': '@',
-      'e': '3',
-      'i': '!',
-      'o': '0',
-      's': '$'
-    };
+  for (let i = 0; i < strengthened.length; i++) {
+    const char = strengthened[i].toLowerCase();
     
-    // Only replace one or two characters to keep it memorable
-    let replacements = 0;
-    let newStr = '';
-    
-    for (let i = 0; i < strengthened.length && replacements < 2; i++) {
-      const char = strengthened[i].toLowerCase();
-      if (leetReplacements[char] && Math.random() > 0.5 && replacements < 2) {
-        newStr += leetReplacements[char];
-        replacements++;
-      } else {
-        newStr += strengthened[i];
-      }
-    }
-    
-    if (replacements > 0) {
-      strengthened = newStr;
-    }
-  }
-  
-  // Step 3: Add a memorable number (year or simple pattern)
-  // Check if password already has a number
-  if (!/\d/.test(strengthened)) {
-    const currentYear = new Date().getFullYear();
-    const memorableNumbers = [
-      currentYear.toString(), 
-      (currentYear % 100).toString(), 
-      "123", 
-      "777", 
-      "999", 
-      "111", 
-      "2023", 
-      "2024"
-    ];
-    const numberToAdd = memorableNumbers[Math.floor(Math.random() * memorableNumbers.length)];
-    strengthened += numberToAdd;
-  }
-  
-  // Step 4: Add a memorable special character if not present
-  if (!/[^A-Za-z0-9]/.test(strengthened)) {
-    const memorableSpecialChars = ['!', '@', '#', '$'];
-    const specialChar = memorableSpecialChars[Math.floor(Math.random() * memorableSpecialChars.length)];
-    
-    // Add the special character in a position that makes sense (after a word, before a number)
-    // This makes it more memorable by following patterns people expect
-    const numberIndex = strengthened.search(/\d/);
-    
-    if (numberIndex > 0 && numberIndex < strengthened.length - 1) {
-      // Insert before the first number
-      strengthened = strengthened.slice(0, numberIndex) + specialChar + strengthened.slice(numberIndex);
+    // Apply leetspeak with probability
+    if (leetMap[char] && Math.random() < leetProbability) {
+      const leetOptions = leetMap[char];
+      leetTransformed += leetOptions[Math.floor(Math.random() * leetOptions.length)];
     } else {
-      // Add to the end
-      strengthened += specialChar;
+      // Keep original character, but randomize capitalization for letters
+      if (/[a-zA-Z]/.test(strengthened[i]) && Math.random() < 0.3) {
+        leetTransformed += strengthened[i].toUpperCase();
+      } else {
+        leetTransformed += strengthened[i];
+      }
     }
   }
   
-  // Step 5: Ensure minimum length of 10 characters
-  if (strengthened.length < 10) {
-    const shortWords = ["now", "yes", "win", "top", "max", "pro"];
-    const word = shortWords[Math.floor(Math.random() * shortWords.length)];
-    strengthened += word.charAt(0).toUpperCase() + word.slice(1);
+  strengthened = leetTransformed;
+  
+  // Step 2: Add a random special character at a random position
+  if (!/[^A-Za-z0-9]/.test(strengthened)) {
+    const specialChar = specialChars[Math.floor(Math.random() * specialChars.length)];
+    const position = Math.floor(Math.random() * strengthened.length);
+    strengthened = strengthened.slice(0, position) + specialChar + strengthened.slice(position);
+  }
+  
+  // Step 3: Add a random number if not present
+  if (!/\d/.test(strengthened)) {
+    const randomNum = Math.floor(Math.random() * 99) + 1;
+    const position = Math.floor(Math.random() * strengthened.length);
+    strengthened = strengthened.slice(0, position) + randomNum + strengthened.slice(position);
+  }
+  
+  // Step 4: Add a random unrelated suffix for extra uniqueness
+  const suffix = randomSuffixes[Math.floor(Math.random() * randomSuffixes.length)];
+  strengthened += suffix;
+  
+  // Step 5: Ensure minimum length of 12 characters
+  if (strengthened.length < 12) {
+    const randomChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    while (strengthened.length < 12) {
+      strengthened += randomChars.charAt(Math.floor(Math.random() * randomChars.length));
+    }
   }
   
   // Ensure the password has at least one uppercase, lowercase, number, and special character
@@ -219,6 +197,38 @@ export function generateStrongPassword(userPassword: string): string {
   if (!hasSpecial) strengthened += '!';
   
   return strengthened;
+}
+
+// Helper function to apply leetspeak transformations
+function applyLeetspeak(word: string, probability: number): string {
+  let result = '';
+  for (let i = 0; i < word.length; i++) {
+    const char = word[i].toLowerCase();
+    if (leetMap[char] && Math.random() < probability) {
+      const leetOptions = leetMap[char];
+      result += leetOptions[Math.floor(Math.random() * leetOptions.length)];
+    } else {
+      result += word[i];
+    }
+  }
+  return result;
+}
+
+// Helper function to randomize capitalization
+function randomizeCapitalization(word: string): string {
+  let result = '';
+  for (let i = 0; i < word.length; i++) {
+    if (/[a-zA-Z]/.test(word[i]) && Math.random() < 0.3) {
+      result += word[i].toUpperCase();
+    } else {
+      result += word[i];
+    }
+  }
+  // Always capitalize the first letter for better memorability
+  if (word.length > 0 && /[a-z]/.test(result[0])) {
+    result = result[0].toUpperCase() + result.slice(1);
+  }
+  return result;
 }
 
 // Check if password contains personal data - improved to catch more patterns
@@ -485,7 +495,7 @@ export function calculateTimeToCrack(password: string, strength: number): {
   superComputer: string;
   hashcatResults?: ReturnType<typeof simulateHashcatCrack>;
 } {
-  // Base time calculation
+  // Base time calculation with exponential scaling for stronger passwords
   let secondsToCrack: number;
   
   if (strength < 20) {
@@ -497,36 +507,19 @@ export function calculateTimeToCrack(password: string, strength: number): {
   } else if (strength < 80) {
     secondsToCrack = Math.pow(10, 8); // ~ 3 years
   } else if (strength < 90) {
-    secondsToCrack = Math.pow(10, 11); // ~ 3,000 years
-  } else {
+    secondsToCrack = Math.pow(10, 12); // ~ 30,000 years
+  } else if (strength < 98) {
     secondsToCrack = Math.pow(10, 15); // Millions of years
+  } else {
+    secondsToCrack = Math.pow(10, 20); // Billions of years
   }
   
   // Adjust based on password length and complexity
   const lengthMultiplier = Math.max(1, Math.pow(2, password.length - 8));
   secondsToCrack *= lengthMultiplier;
   
-  // Add hashcat simulation results
+  // Add hashcat simulation results with adjusted timing for extremely strong passwords
   const hashcatResults = simulateHashcatCrack(password, strength);
-  
-  // Format the time string
-  const formatTimeString = (seconds: number): string => {
-    if (seconds < 60) {
-      return `${Math.round(seconds)} seconds`;
-    } else if (seconds < 3600) {
-      return `${Math.round(seconds / 60)} minutes`;
-    } else if (seconds < 86400) {
-      return `${Math.round(seconds / 3600)} hours`;
-    } else if (seconds < 31536000) {
-      return `${Math.round(seconds / 86400)} days`;
-    } else if (seconds < 315360000) { // 10 years
-      return `${Math.round(seconds / 31536000)} years`;
-    } else if (seconds < 31536000000) { // 1000 years
-      return `${Math.round(seconds / 31536000)} years`;
-    } else {
-      return "Millions of years";
-    }
-  };
   
   return {
     regular: formatTimeString(secondsToCrack),

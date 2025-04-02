@@ -26,6 +26,7 @@ const StepTwo: React.FC<StepTwoProps> = ({ userData, onComplete, onBack }) => {
   const [password, setPassword] = useState('');
   const [strength, setStrength] = useState(0);
   const [personalDataIssues, setPersonalDataIssues] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const formSchema = z.object({
     password: z
@@ -35,7 +36,7 @@ const StepTwo: React.FC<StepTwoProps> = ({ userData, onComplete, onBack }) => {
       .refine(val => /[a-z]/.test(val), { message: "Password must contain at least one lowercase letter." })
       .refine(val => /[0-9]/.test(val), { message: "Password must contain at least one number." })
       .refine(val => /[^A-Za-z0-9]/.test(val), { message: "Password must contain at least one special character." })
-      .refine(val => strength >= 70, { message: "Password is not strong enough. Try our suggestions." })
+      .refine(val => strength >= 90, { message: "Password is not strong enough. Try our suggestions." })
       .refine(val => personalDataIssues.length === 0, { 
         message: "Password contains personal information. Please choose a different password." 
       }),
@@ -66,7 +67,14 @@ const StepTwo: React.FC<StepTwoProps> = ({ userData, onComplete, onBack }) => {
   }, [password, userData, form]);
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
-    onComplete(data.password);
+    if (isSubmitting) return; // Prevent multiple submissions
+    setIsSubmitting(true);
+    
+    try {
+      onComplete(data.password);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSuggestionSelect = (suggestedPassword: string) => {
@@ -126,7 +134,7 @@ const StepTwo: React.FC<StepTwoProps> = ({ userData, onComplete, onBack }) => {
             <Button 
               type="submit" 
               className="flex-1"
-              disabled={!form.formState.isValid}
+              disabled={!form.formState.isValid || isSubmitting}
             >
               Next Step <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
